@@ -3,7 +3,12 @@
 %>
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from ..models import <%= PAGE_CLASS_NAME %>,  <%= [...SCHEMA.tables.details].map(d => toClassName(d.tableName || "")).join(", ") %>  # Import detail models
+from ..models import <%= PAGE_CLASS_NAME %>  
+<% if(SCHEMA.tables.details.length > 0) { %>
+from ..models import <%= SCHEMA.tables.details.map(d => toClassName(d.tableName || "")).join(", ") %>  # Import detail models
+<% } %>
+from sqlalchemy.future import select
+from sqlalchemy import func
 from typing import List, Optional
 <%
            
@@ -19,11 +24,13 @@ class <%= toClassName(PAGE_TITLE) %>Service:
     
     async def get_all(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> List[<%= PAGE_CLASS_NAME %>]:
         """Get all ordmas records"""
-        return (await db.query(<%= PAGE_CLASS_NAME %>).offset(skip).limit(limit)).all()
+        result = await db.execute(select(<%= PAGE_CLASS_NAME %>).offset(skip).limit(limit))
+        return result.scalars().all()
     
     async def get_by_id(self, db: AsyncSession, id: int) -> Optional[<%= PAGE_CLASS_NAME %>]:
         """Get a single ordmas record by ID"""
-        return await (db.query(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id)).first()
+        result = await db.execute(select(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id))
+        return result.scalars().first()
     
     async def create(self, db: AsyncSession, data: dict) -> <%= PAGE_CLASS_NAME %>:
         """
@@ -111,7 +118,7 @@ class <%= toClassName(PAGE_TITLE) %>Service:
             detail_records[detail_name] = data.pop(detail_name, None)
         
         try:
-            db_item = db.query(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id).first()
+            db_item = (await db.execute(select(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id))).scalars().first()
             if not db_item:
                 return None
             
@@ -129,7 +136,8 @@ class <%= toClassName(PAGE_TITLE) %>Service:
                     if 'id' in detail_data and detail_data['id']:
                         detail_id = detail_data['id']
                         new_detail_ids.add(detail_id)
-                        detail_item = (await db.query(Ordcomp).filter(Ordcomp.id == detail_id)).first()
+                        result = await db.execute(select(<%= DETAIL_CLASS_NAMES[detailTable] %>).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.id == detail_id))
+                        detail_item = result.scalars().first()
                         if detail_item:
                             for key, value in detail_data.items():
                                 if value is not None and key != 'id':
@@ -143,12 +151,12 @@ class <%= toClassName(PAGE_TITLE) %>Service:
                 
                 # DELETE records not in new list
                 if new_detail_ids:
-                    (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(
+                    (await db.execute(select(<%= DETAIL_CLASS_NAMES[detailTable] %>).filter(
                         <%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == id,
                         ~<%= DETAIL_CLASS_NAMES[detailTable] %>.id.in_(new_detail_ids)
-                    ).delete(synchronize_session=False)
+                    ))).scalars().delete(synchronize_session=False)
                 else:
-                    (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == id).delete(synchronize_session=False)
+                    (await db.execute(select(<%= DETAIL_CLASS_NAMES[detailTable] %>).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == id))).scalars().delete(synchronize_session=False)
 <% } %>
             await db.commit()
             await db.refresh(db_item)
@@ -161,11 +169,11 @@ class <%= toClassName(PAGE_TITLE) %>Service:
     async def delete(self, db: AsyncSession, id: int) -> bool:
         """Delete a ordmas record and all related detail records"""
         try:
-            db_item = (await db.query(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id)).first()
+            db_item = (await db.execute(select(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id))).scalars().first()
             if db_item:
                 # Delete all detail records directly (without individual commits)
 <% for (const detailTable of DETAIL_TABLES) { %>
-                (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == id).delete(synchronize_session=False)
+                (await db.execute(select(<%= DETAIL_CLASS_NAMES[detailTable] %>).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == id))).scalars().delete(synchronize_session=False)
 <% } %>
                 # Delete master record
                 await db.delete(db_item)
@@ -178,13 +186,15 @@ class <%= toClassName(PAGE_TITLE) %>Service:
     
     async def count(self, db: AsyncSession) -> int:
         """Get total count of ordmas records"""
-        return (await db.query(Ordmas)).count()
+        result = await db.execute(select(func.count()).select_from(<%= PAGE_CLASS_NAME %>))
+        return result.scalar_one()
 <% for (const detailTable of DETAIL_TABLES) { %>
 
     # ============= DETAIL TABLE OPERATIONS FOR <%= detailTable %> =============
     async def get_details_<%= detailTable %>(self, db: AsyncSession, master_id: int) -> List[<%= DETAIL_CLASS_NAMES[detailTable] %>]:
         """Get all ordcomp records for a master"""
-        return (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == master_id).all()
+        result = await db.execute(select(<%= DETAIL_CLASS_NAMES[detailTable] %>).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == master_id))
+        return result.scalars().all()
     
     async def create_detail_<%= detailTable %>(self, db: AsyncSession, master_id: int, data: dict) -> <%= DETAIL_CLASS_NAMES[detailTable] %>:
         """Create a new <%= detailTable %> record"""
@@ -197,18 +207,20 @@ class <%= toClassName(PAGE_TITLE) %>Service:
     
     async def update_detail_<%= detailTable %>(self, db: AsyncSession, detail_id: int, data: dict) -> Optional[<%= DETAIL_CLASS_NAMES[detailTable] %>]:
         """Update a <%= detailTable %> record"""
-        db_item = (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.id == detail_id).first()
+        result = await db.execute(select(<%= DETAIL_CLASS_NAMES[detailTable] %>).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.id == detail_id))
+        db_item = result.scalars().first()
         if db_item:
             for key, value in data.items():
                 if value is not None and key != 'master_id':
                     setattr(db_item, key, value)
             await db.commit()
-            db.refresh(db_item)
+            await db.refresh(db_item)
         return db_item
     
     async def delete_detail_<%= detailTable %>(self, db: AsyncSession, detail_id: int) -> bool:
         """Delete a <%= detailTable %> record"""
-        db_item = (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.id == detail_id).first()
+        result = await db.execute(select(<%= DETAIL_CLASS_NAMES[detailTable] %>).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.id == detail_id))
+        db_item = result.scalars().first()
         if db_item:
             await db.delete(db_item)
             await db.commit()
@@ -217,7 +229,7 @@ class <%= toClassName(PAGE_TITLE) %>Service:
     
     async def count_details_<%= detailTable %>(self, db: AsyncSession, master_id: int) -> int:
         """Get count of <%= detailTable %> records for a master"""
-        return (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == master_id).count()
-
+        result = await db.execute(select(func.count()).select_from(<%= DETAIL_CLASS_NAMES[detailTable] %>).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == master_id))
+        return result.scalar_one()
 <% } %>
 
