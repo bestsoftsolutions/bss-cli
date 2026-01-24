@@ -37,11 +37,29 @@ __export(selfUpdate_exports, {
 });
 function fetchJson(url) {
   return new Promise((resolve3, reject) => {
-    import_https.default.get(url, (res) => {
-      let data = "";
-      res.on("data", (d) => data += d);
-      res.on("end", () => resolve3(JSON.parse(data)));
-    }).on("error", reject);
+    const req = import_https.default.request(
+      url,
+      {
+        headers: {
+          "User-Agent": "bss-cli",
+          // ⭐ REQUIRED
+          Accept: "application/vnd.github+json"
+        }
+      },
+      (res) => {
+        let data = "";
+        res.on("data", (d) => data += d);
+        res.on("end", () => {
+          try {
+            resolve3(JSON.parse(data));
+          } catch {
+            reject(new Error(data));
+          }
+        });
+      }
+    );
+    req.on("error", reject);
+    req.end();
   });
 }
 async function selfUpdate() {
