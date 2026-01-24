@@ -177,65 +177,31 @@ function debug(msg) {
 // src/database.ts
 var import_oracledb = __toESM(require("oracledb"), 1);
 
-// src/config.ts
+// src/configLoader.ts
 var fs2 = __toESM(require("fs"), 1);
 var path2 = __toESM(require("path"), 1);
-var __dirname2 = path2.dirname(__filename);
-var cliRoot = path2.resolve(__dirname2, "..");
-function getTemplatePath(type) {
-  return path2.resolve(cliRoot, "./templates", type);
+var CONFIG_FILE = "bss.config.json";
+function saveConfig(config) {
+  const configPath = path2.join(process.cwd(), CONFIG_FILE);
+  fs2.writeFileSync(configPath, JSON.stringify(config, null, 2));
 }
 function loadConfig() {
-  try {
-    const projectConfigPath = path2.join(process.cwd(), "bss.config.json");
-    let config2 = void 0;
-    if (fs2.existsSync(projectConfigPath)) {
-      config2 = JSON.parse(fs2.readFileSync(projectConfigPath, "utf-8"));
-    } else {
-      const fallbackConfigPath = path2.join(__dirname2, "..", "bss.config.json");
-      if (fs2.existsSync(fallbackConfigPath)) {
-        config2 = JSON.parse(fs2.readFileSync(fallbackConfigPath, "utf-8"));
-      } else {
-        throw new Error("bss.config.json not found. Run `init` first.");
-      }
-    }
-    if (config2.axpert && config2.axpert.db) {
-      config2.database = config2.axpert.db;
-    }
-    return config2;
-  } catch (err) {
-    throw new Error("Failed to load config: " + err);
+  const configPath = path2.join(process.cwd(), CONFIG_FILE);
+  if (!fs2.existsSync(configPath)) {
+    throw new Error("bss.config.json not found. Run `init` first.");
   }
-  return {
-    database: {
-      user: "garment",
-      password: "log",
-      connectString: "192.168.1.95:1521/xe"
-    },
-    paths: {
-      backend: "./backend/app/modules",
-      frontend: "./frontend/apps/modules"
-    },
-    defaults: {
-      pageSize: 10,
-      maxPageSize: 100
-    }
-  };
+  return JSON.parse(fs2.readFileSync(configPath, "utf-8"));
 }
-var config = loadConfig();
-var ORACLE_CONFIG = {
-  user: config.database?.user ?? "",
-  password: config.database?.password ?? "",
-  connectString: config.database?.connectString ?? ""
-};
-var BACKEND_PATH = config.paths?.backend ?? "./backend/apps/modules";
-var FRONTEND_PATH = config.paths?.frontend ?? "./frontend/apps/modules";
-var DEFAULT_PAGE_SIZE = config.defaults?.pageSize ?? 10;
-var MAX_PAGE_SIZE = config.defaults?.maxPageSize ?? 100;
 
 // src/database.ts
 async function getOracleConnection() {
   try {
+    const config = loadConfig();
+    const ORACLE_CONFIG = {
+      user: config.db?.user ?? "",
+      password: config.db?.password ?? "",
+      connectString: config.db?.connectString ?? ""
+    };
     const connection = await import_oracledb.default.getConnection(ORACLE_CONFIG);
     return connection;
   } catch (error) {
@@ -417,6 +383,14 @@ var getAxpertStructure = async (tstruct) => {
   }
 };
 
+// src/config.ts
+var path3 = __toESM(require("path"), 1);
+var __dirname2 = path3.dirname(__filename);
+var cliRoot = path3.resolve(__dirname2, "..");
+function getTemplatePath(type) {
+  return path3.resolve(cliRoot, "./templates", type);
+}
+
 // src/typeMapping.ts
 function toClassName(tableName) {
   return tableName.replace(" ", "_").split("_").map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join("");
@@ -424,12 +398,12 @@ function toClassName(tableName) {
 
 // src/fileUtils.ts
 var fs3 = __toESM(require("fs"), 1);
-var path3 = __toESM(require("path"), 1);
+var path4 = __toESM(require("path"), 1);
 function dirExists(dirPath) {
   return fs3.existsSync(dirPath) && fs3.statSync(dirPath).isDirectory();
 }
 function createDir(dirPath, ...args) {
-  const fullPath = path3.join(dirPath, ...args);
+  const fullPath = path4.join(dirPath, ...args);
   if (!fs3.existsSync(fullPath)) {
     fs3.mkdirSync(fullPath, { recursive: true });
   }
@@ -966,22 +940,6 @@ async function pickTstructInteractive(dbConfig) {
   }
 }
 
-// src/configLoader.ts
-var fs4 = __toESM(require("fs"), 1);
-var path5 = __toESM(require("path"), 1);
-var CONFIG_FILE = "bss.config.json";
-function saveConfig(config2) {
-  const configPath = path5.join(process.cwd(), CONFIG_FILE);
-  fs4.writeFileSync(configPath, JSON.stringify(config2, null, 2));
-}
-function loadConfig2() {
-  const configPath = path5.join(process.cwd(), CONFIG_FILE);
-  if (!fs4.existsSync(configPath)) {
-    throw new Error("bss.config.json not found. Run `init` first.");
-  }
-  return JSON.parse(fs4.readFileSync(configPath, "utf-8"));
-}
-
 // src/commands/init.ts
 var import_child_process = require("child_process");
 var import_path2 = __toESM(require("path"), 1);
@@ -1007,21 +965,21 @@ var program = new import_commander.Command();
 program.command("create-axpert-page [tstruct]").description("Create Axpert backend + frontend from DB structure").option("--interactive", "Pick tstruct interactively").option("-m, --module <name>", "Module name (default: tstruct)").option("-b, --backend <path>", "Override backend output path").option("-f, --frontend <path>", "Override frontend output path").option("--skip-backend", "Skip backend generation").option("--skip-frontend", "Skip frontend generation").option("--verbose", "Enable verbose output").option("--debug", "Enable debug output").option("--dry-run", "Preview actions without writing files").action(async (tstructArg, opts) => {
   try {
     setLogLevel({ verbose: opts.verbose, debug: opts.debug });
-    const config2 = loadConfig2();
+    const config = loadConfig();
     let tstruct = tstructArg;
     if (!tstruct || opts.interactive) {
-      tstruct = await pickTstructInteractive(config2.axpert.db);
+      tstruct = await pickTstructInteractive(config.axpert.db);
     }
     const moduleName = opts.module ?? tstruct;
-    const backendRoot = opts.backend ?? config2.paths.backend;
-    const frontendRoot = opts.frontend ?? config2.paths.frontend;
+    const backendRoot = opts.backend ?? config.paths.backend;
+    const frontendRoot = opts.frontend ?? config.paths.frontend;
     await createAxpertPage(
       tstruct,
       moduleName,
       backendRoot,
       frontendRoot,
       getTemplatePath("axpert"),
-      config2.axpert.db,
+      config.axpert.db,
       {
         skipBackend: !!opts.skipBackend,
         skipFrontend: !!opts.skipFrontend,
@@ -1095,7 +1053,7 @@ program.command("init").description("Initialize BSS CLI configuration").action(a
         validate: (v) => v.trim() !== "" || "Required"
       }
     ]);
-    const config2 = {
+    const config = {
       paths: {
         backend: answers.backendPath,
         frontend: answers.frontendPath
@@ -1108,7 +1066,7 @@ program.command("init").description("Initialize BSS CLI configuration").action(a
         }
       }
     };
-    saveConfig(config2);
+    saveConfig(config);
     console.log("\n\u2705 bss.config.json created successfully\n");
   } catch (err) {
     console.error("Init failed:", err);
