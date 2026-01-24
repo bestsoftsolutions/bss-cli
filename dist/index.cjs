@@ -35,62 +35,49 @@ var selfUpdate_exports = {};
 __export(selfUpdate_exports, {
   selfUpdate: () => selfUpdate
 });
-function fetchJson(url) {
-  return new Promise((resolve3, reject) => {
-    const req = import_https.default.request(
-      url,
-      {
-        headers: {
-          "User-Agent": "bss-cli",
-          // ⭐ REQUIRED
-          Accept: "application/vnd.github+json"
-        }
-      },
-      (res) => {
-        let data = "";
-        res.on("data", (d) => data += d);
-        res.on("end", () => {
-          try {
-            resolve3(JSON.parse(data));
-          } catch {
-            reject(new Error(data));
-          }
-        });
-      }
-    );
-    req.on("error", reject);
-    req.end();
-  });
-}
 async function selfUpdate() {
   try {
     console.log("\u{1F50D} Checking latest version...");
-    const release = await fetchJson(
-      `https://api.github.com/repos/${REPO}/releases/latest`
+    const res = await fetch(
+      `https://api.github.com/repos/${REPO}/releases/latest`,
+      {
+        headers: {
+          "User-Agent": "bss-cli",
+          "Accept": "application/vnd.github+json"
+        }
+      }
     );
-    const version = release.tag_name;
+    const text = await res.text();
+    if (!res.ok) {
+      throw new Error(text);
+    }
+    const release = JSON.parse(text);
+    if (!release || !release.assets) {
+      console.log("\u274C No GitHub releases found.");
+      console.log("Create a release first using publish script.");
+      return;
+    }
     const asset = release.assets.find(
       (a) => a.name.endsWith(".tgz")
     );
     if (!asset) {
-      console.log("\u274C No tarball found in latest release");
+      console.log("\u274C No .tgz file found in release assets.");
       return;
     }
-    console.log(`\u2B06\uFE0F Updating to ${version}...`);
+    console.log(`\u2B06\uFE0F Updating to ${release.tag_name}...`);
     (0, import_child_process2.execSync)(`npm i -g ${asset.browser_download_url}`, {
       stdio: "inherit"
     });
     console.log("\u2705 Update complete!");
   } catch (err) {
-    console.error("Update failed:", err);
+    console.error("Update failed:", err.message || err);
   }
 }
-var import_child_process2, import_https, REPO;
+var import_child_process2, REPO;
 var init_selfUpdate = __esm({
   "src/commands/selfUpdate.ts"() {
     "use strict";
     import_child_process2 = require("child_process");
-    import_https = __toESM(require("https"), 1);
     REPO = "bestsoftsolutions/bss-cli";
   }
 });
