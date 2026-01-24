@@ -55,13 +55,14 @@ class <%= toClassName(PAGE_TITLE) %>Service:
         Returns:
             Master record with all created details (single transaction)
         """
+<% if(SCHEMA.tables.details.length > 0) { %>        
         # Extract detail records from data
         detail_records = {}
         detail_tables_names = <%~ DETAIL_TABLES.map(name => `'${name}'`).join(", ") %>
         
         for detail_name in detail_tables_names:
             detail_records[detail_name] = data.pop(detail_name, [])
-        
+<% } %>
         try:
             # Create master record
             db_item = <%= PAGE_CLASS_NAME %>(**data)
@@ -110,13 +111,14 @@ class <%= toClassName(PAGE_TITLE) %>Service:
         Returns:
             Updated master record with all updated details (single transaction)
         """
+<% if(SCHEMA.tables.details.length > 0) { %>        
         # Extract detail records from data
         detail_records = {}
         detail_tables_names = <%~ DETAIL_TABLES.map(name => `'${name}'`).join(", ") %>
         
         for detail_name in detail_tables_names:
             detail_records[detail_name] = data.pop(detail_name, None)
-        
+<% } %>        
         try:
             db_item = (await db.execute(select(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id))).scalars().first()
             if not db_item:
