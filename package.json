@@ -1,25 +1,46 @@
 {
   "name": "bss-cli",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "BSS project scaffolding CLI",
   "type": "module",
-  "main": "dist/cli.js",
+  "main": "dist/index.js",
   "bin": {
-    "bss": "dist/cli.js"
+    "bss": "dist/index.js"
   },
   "files": [
     "dist",
     "templates"
   ],
+  "scripts": {
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist",
+    "build": "tsup ",
+    "publish:public": "node scripts/publish.cjs"
+  },
+  "keywords": [
+    "cli",
+    "typescript"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/commander": "^2.12.0",
+    "@types/inquirer": "^9.0.9",
+    "@types/node": "^20.19.30",
+    "@types/oracledb": "^6.10.0",
+    "fs-extra": "^11.3.3",
+    "pkg": "^5.8.1",
+    "ts-node": "^10.9.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.0.0"
+  },
+  "optionalDependencies": {
+    "oracledb": "^6.10.0"
+  },
   "dependencies": {
     "commander": "^14.0.2",
-    "inquirer": "^13.1.0",
     "eta": "^4.5.0",
-    "fs-extra": "^11.3.3"
-  },
-  "devDependencies": {
-    "typescript": "^5",
-    "tsup": "^8.5.1",
-    "ts-node": "^10"
+    "inquirer": "^8.2.7"
   }
 }
