@@ -25,8 +25,7 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 
 // src/index.ts
 var import_commander = require("commander");
-var import_inquirer2 = __toESM(require("inquirer"), 1);
-var path6 = __toESM(require("path"), 1);
+var path7 = __toESM(require("path"), 1);
 
 // src/templateGenerator.ts
 var fs = __toESM(require("fs"), 1);
@@ -122,8 +121,8 @@ var import_oracledb = __toESM(require("oracledb"), 1);
 // src/config.ts
 var fs2 = __toESM(require("fs"), 1);
 var path2 = __toESM(require("path"), 1);
-var __dirname = path2.dirname(__filename);
-var cliRoot = path2.resolve(__dirname, "..");
+var __dirname2 = path2.dirname(__filename);
+var cliRoot = path2.resolve(__dirname2, "..");
 function getTemplatePath(type) {
   return path2.resolve(cliRoot, "./templates", type);
 }
@@ -134,7 +133,7 @@ function loadConfig() {
     if (fs2.existsSync(projectConfigPath)) {
       config2 = JSON.parse(fs2.readFileSync(projectConfigPath, "utf-8"));
     } else {
-      const fallbackConfigPath = path2.join(__dirname, "..", "bss.config.json");
+      const fallbackConfigPath = path2.join(__dirname2, "..", "bss.config.json");
       if (fs2.existsSync(fallbackConfigPath)) {
         config2 = JSON.parse(fs2.readFileSync(fallbackConfigPath, "utf-8"));
       } else {
@@ -924,6 +923,26 @@ function loadConfig2() {
   return JSON.parse(fs4.readFileSync(configPath, "utf-8"));
 }
 
+// src/commands/init.ts
+var import_child_process = require("child_process");
+var import_path2 = __toESM(require("path"), 1);
+function ensurePackage(pkg, opts = {}) {
+  const { version = "", silent = false } = opts;
+  const name = version ? `${pkg}@${version}` : pkg;
+  try {
+    return require(pkg);
+  } catch {
+    console.log(`\u{1F4E6} ${pkg} not found. Installing automatically...`);
+    const cliRoot2 = import_path2.default.resolve(__dirname, "..", "..");
+    (0, import_child_process.execSync)(`npm install ${name} --no-save`, {
+      cwd: cliRoot2,
+      stdio: silent ? "ignore" : "inherit"
+    });
+    console.log(`\u2705 ${pkg} installed`);
+    return require(pkg);
+  }
+}
+
 // src/index.ts
 var program = new import_commander.Command();
 program.command("create-axpert-page [tstruct]").description("Create Axpert backend + frontend from DB structure").option("--interactive", "Pick tstruct interactively").option("-m, --module <name>", "Module name (default: tstruct)").option("-b, --backend <path>", "Override backend output path").option("-f, --frontend <path>", "Override frontend output path").option("--skip-backend", "Skip backend generation").option("--skip-frontend", "Skip frontend generation").option("--verbose", "Enable verbose output").option("--debug", "Enable debug output").option("--dry-run", "Preview actions without writing files").action(async (tstructArg, opts) => {
@@ -959,7 +978,7 @@ program.command("create-axpert-page [tstruct]").description("Create Axpert backe
 program.command("create-page").description("Create a new frontend/backend page from the template structure (no logic, no content)").argument("<module>", "Module name (used for placeholder replacement)").argument("<page>", "Page name (used for placeholder replacement)").option("-o, --output <path>", "Output directory for the new page", "./modules").action(async (module2, page, options) => {
   try {
     const templateRoot = getTemplatePath("page");
-    const outputRoot = path6.resolve(process.cwd(), options.output, module2, page);
+    const outputRoot = path7.resolve(process.cwd(), options.output, module2, page);
     generatePageFromTemplate(templateRoot, outputRoot, page);
     console.log(`
 \u2705 Page created at: ${outputRoot}
@@ -971,8 +990,18 @@ program.command("create-page").description("Create a new frontend/backend page f
 });
 program.command("init").description("Initialize BSS CLI configuration").action(async () => {
   try {
+    console.log("Checking Dependencies...");
+    ensurePackage("inquirer", { silent: true });
+    console.log("Inquirer is installed.");
+    ensurePackage("fs-extra", { silent: true });
+    console.log("fs-extra is installed.");
+    ensurePackage("oracledb", { silent: true });
+    console.log("oracledb is installed.");
+    console.log("All dependencies are satisfied.\n");
     console.log("\n\u{1F4CB} BSS CLI Initialization\n");
-    const answers = await import_inquirer2.default.prompt([
+    console.log("Please provide the following configuration details:\n");
+    const inquirer2 = (await import("inquirer")).default;
+    const answers = await inquirer2.prompt([
       {
         type: "input",
         name: "backendPath",
