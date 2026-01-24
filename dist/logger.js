@@ -1,0 +1,1 @@
+let o="silent";function l(e){e?.debug?o="debug":e?.verbose?o="verbose":o="silent";}function g(e){o!=="silent"&&console.log(e);}function n(e){o==="debug"&&console.log(`[debug] ${e}`);}export{n as debug,g as log,l as setLogLevel};
