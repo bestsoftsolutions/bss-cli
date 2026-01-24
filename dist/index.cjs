@@ -6,6 +6,13 @@ var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getProtoOf = Object.getPrototypeOf;
 var __hasOwnProp = Object.prototype.hasOwnProperty;
+var __esm = (fn, res) => function __init() {
+  return fn && (res = (0, fn[__getOwnPropNames(fn)[0]])(fn = 0)), res;
+};
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
     for (let key of __getOwnPropNames(from))
@@ -22,6 +29,53 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
   mod
 ));
+
+// src/commands/selfUpdate.ts
+var selfUpdate_exports = {};
+__export(selfUpdate_exports, {
+  selfUpdate: () => selfUpdate
+});
+function fetchJson(url) {
+  return new Promise((resolve3, reject) => {
+    import_https.default.get(url, (res) => {
+      let data = "";
+      res.on("data", (d) => data += d);
+      res.on("end", () => resolve3(JSON.parse(data)));
+    }).on("error", reject);
+  });
+}
+async function selfUpdate() {
+  try {
+    console.log("\u{1F50D} Checking latest version...");
+    const release = await fetchJson(
+      `https://api.github.com/repos/${REPO}/releases/latest`
+    );
+    const version = release.tag_name;
+    const asset = release.assets.find(
+      (a) => a.name.endsWith(".tgz")
+    );
+    if (!asset) {
+      console.log("\u274C No tarball found in latest release");
+      return;
+    }
+    console.log(`\u2B06\uFE0F Updating to ${version}...`);
+    (0, import_child_process2.execSync)(`npm i -g ${asset.browser_download_url}`, {
+      stdio: "inherit"
+    });
+    console.log("\u2705 Update complete!");
+  } catch (err) {
+    console.error("Update failed:", err);
+  }
+}
+var import_child_process2, import_https, REPO;
+var init_selfUpdate = __esm({
+  "src/commands/selfUpdate.ts"() {
+    "use strict";
+    import_child_process2 = require("child_process");
+    import_https = __toESM(require("https"), 1);
+    REPO = "bestsoftsolutions/bss-cli";
+  }
+});
 
 // src/index.ts
 var import_commander = require("commander");
@@ -1055,5 +1109,9 @@ program.command("init").description("Initialize BSS CLI configuration").action(a
     console.error("Init failed:", err);
     process.exit(1);
   }
+});
+program.command("self-update").description("Update bss-cli to latest version").action(async () => {
+  const { selfUpdate: selfUpdate2 } = await Promise.resolve().then(() => (init_selfUpdate(), selfUpdate_exports));
+  await selfUpdate2();
 });
 program.parse();
