@@ -5,3 +5,6 @@ from .<%= detail %>_schema import <%= toClassName(detail) + 'Schema' %>
 
 
 from .<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>_schema import <%= toClassName(PAGE_TITLE) + 'Schema' %>
+
+from .parameter import <%= toClassName(PAGE_TITLE) + 'ParameterSchema' %>
+

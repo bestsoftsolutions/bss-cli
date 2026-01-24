@@ -1,8 +1,12 @@
+<%
+    const PAGE_CLASS_NAME = toClassName(PAGE_TITLE);
+%>
+
 from sqlalchemy.ext.asyncio import AsyncSession
-from .models import <%= [SCHEMA.tables.master, ...SCHEMA.tables.details].map(d => toClassName(d.tableName || "")).join(", ") %>  # Import detail models
+from ..models import <%= PAGE_CLASS_NAME %>,  <%= [...SCHEMA.tables.details].map(d => toClassName(d.tableName || "")).join(", ") %>  # Import detail models
 from typing import List, Optional
 <%
-            const MASTER_CLASS_NAME = toClassName(SCHEMA.tables.master.tableName);
+           
             const DETAIL_CLASS_NAMES = Object.fromEntries(new Map(SCHEMA.tables.details.map(d => [d.tableName, toClassName(d.tableName)])));
             const DETAIL_TABLES = SCHEMA.tables.details.map(d => d.tableName);
             const MASTER_TABLE_NAME = SCHEMA.tables.master.tableName;
@@ -13,15 +17,15 @@ class <%= toClassName(PAGE_TITLE) %>Service:
     
     # ============= MASTER TABLE OPERATIONS =============
     
-    async def get_all(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> List[<%= MASTER_CLASS_NAME %>]:
+    async def get_all(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> List[<%= PAGE_CLASS_NAME %>]:
         """Get all ordmas records"""
-        return (await db.query(<%= MASTER_CLASS_NAME %>).offset(skip).limit(limit)).all()
+        return (await db.query(<%= PAGE_CLASS_NAME %>).offset(skip).limit(limit)).all()
     
-    async def get_by_id(self, db: AsyncSession, id: int) -> Optional[<%= MASTER_CLASS_NAME %>]:
+    async def get_by_id(self, db: AsyncSession, id: int) -> Optional[<%= PAGE_CLASS_NAME %>]:
         """Get a single ordmas record by ID"""
-        return await (db.query(<%= MASTER_CLASS_NAME %>).filter(<%= MASTER_CLASS_NAME %>.id == id)).first()
+        return await (db.query(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id)).first()
     
-    async def create(self, db: AsyncSession, data: dict) -> <%= MASTER_CLASS_NAME %>:
+    async def create(self, db: AsyncSession, data: dict) -> <%= PAGE_CLASS_NAME %>:
         """
         Create a new ordmas record with optional nested detail records.
         
@@ -53,7 +57,7 @@ class <%= toClassName(PAGE_TITLE) %>Service:
         
         try:
             # Create master record
-            db_item = <%= MASTER_CLASS_NAME %>(**data)
+            db_item = <%= PAGE_CLASS_NAME %>(**data)
             db.add(db_item)
             await db.flush()  # Flush to get the ID without committing
             
@@ -74,7 +78,7 @@ class <%= toClassName(PAGE_TITLE) %>Service:
             await db.rollback()
             raise Exception(f"Error creating master with details: {str(e)}")
     
-    async def update(self, db: AsyncSession, id: int, data: dict) -> Optional[<%= MASTER_CLASS_NAME %>]:
+    async def update(self, db: AsyncSession, id: int, data: dict) -> Optional[<%= PAGE_CLASS_NAME %>]:
         """
         Update a ordmas record with optional nested detail records.
         
@@ -107,7 +111,7 @@ class <%= toClassName(PAGE_TITLE) %>Service:
             detail_records[detail_name] = data.pop(detail_name, None)
         
         try:
-            db_item = db.query(<%= MASTER_CLASS_NAME %>).filter(<%= MASTER_CLASS_NAME %>.id == id).first()
+            db_item = db.query(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id).first()
             if not db_item:
                 return None
             
@@ -157,7 +161,7 @@ class <%= toClassName(PAGE_TITLE) %>Service:
     async def delete(self, db: AsyncSession, id: int) -> bool:
         """Delete a ordmas record and all related detail records"""
         try:
-            db_item = (await db.query(<%= MASTER_CLASS_NAME %>).filter(<%= MASTER_CLASS_NAME %>.id == id)).first()
+            db_item = (await db.query(<%= PAGE_CLASS_NAME %>).filter(<%= PAGE_CLASS_NAME %>.id == id)).first()
             if db_item:
                 # Delete all detail records directly (without individual commits)
 <% for (const detailTable of DETAIL_TABLES) { %>

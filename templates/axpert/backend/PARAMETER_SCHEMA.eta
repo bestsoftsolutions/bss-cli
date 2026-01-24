@@ -3,6 +3,9 @@ from typing import Optional, List
 from app.types.localdatetime import LocalDatetime,LocalDate,LocalTime
 from decimal import Decimal
 <%
+
+const PARAMETER_CLASS_NAME = toClassName(PAGE_TITLE) + 'ParameterSchema'
+
 const TYPE_MAPPING = {
     'c': 'str',
     'd': 'LocalDate',
@@ -37,7 +40,7 @@ function mapFieldDefinition(field) {
     }
 }
 %>
-class <%= CLASS_NAME %>ParameterSchema(BaseModel):
+class <%= PARAMETER_CLASS_NAME %>(BaseModel):
 <% for (field of FIELDS) { %>
     <%= field.fname.toLowerCase() %>: <%= mapFieldDefinition(field) %>
 

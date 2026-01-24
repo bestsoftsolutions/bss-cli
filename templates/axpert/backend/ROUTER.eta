@@ -3,7 +3,7 @@
     const MODEL_SERVICE_NAME = toClassName(PAGE_TITLE) + "Service";
     const DATA_SERVICE_NAME = toClassName(PAGE_TITLE) + "DataService";
     const SCHEMA_NAME = toClassName(PAGE_TITLE) + "Schema";
-    const PARAMETER_SCHEMA_NAME = toClassName(PAGE_TITLE) + "Parameter";
+    const PARAMETER_SCHEMA_NAME = toClassName(PAGE_TITLE) + "ParameterSchema";
     
 %>
 
@@ -86,10 +86,10 @@ async def create_<%= __module__ %>(data: dict, db: AsyncSession = Depends(get_db
 
 
 @router.put("/{id}", response_model=<%= SCHEMA_NAME %>)
-def update_<%= __module__ %>(id: int, data: dict, db: Session = Depends(get_db)):
+async def update_<%= __module__ %>(id: int, data: dict, db: AsyncSession = Depends(get_db_async)):
     """Update a <%= __module__ %> record"""
     try:
-        item = service.update(db, id, data)
+        item = await service.update(db, id, data)
         if not item:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -109,10 +109,10 @@ def update_<%= __module__ %>(id: int, data: dict, db: Session = Depends(get_db))
 
 
 @router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_<%= __module__ %>(id: int, db: Session = Depends(get_db)):
+async def delete_<%= __module__ %>(id: int, db: AsyncSession = Depends(get_db_async)):
     """Delete a <%= __module__ %> record"""
     try:
-        success = service.delete(db, id)
+        success = await service.delete(db, id)
         if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -130,7 +130,7 @@ def delete_<%= __module__ %>(id: int, db: Session = Depends(get_db)):
 # ============= DATA ROUTES (Dynamic SQL Query Endpoints) =============
 
 @router.post("/data/{field_name}", tags=["data"])
-def get_field_data(
+async def get_field_data(
     field_name: str = Path(..., description="Name of the field to fetch data for"),
     params: Optional[Any] = None,
     db: AsyncSession = Depends(get_db_async)
@@ -169,7 +169,7 @@ def get_field_data(
                 params_dict = params
         
         # Call factory function
-        result = data_service.get_field_data(db, field_name, params_dict)
+        result = await data_service.get_field_data(db, field_name, params_dict)
         
         return {
             "success": True,
