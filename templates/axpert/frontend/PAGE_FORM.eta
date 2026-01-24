@@ -1,0 +1,24 @@
+
+import { FormContent } from "@/core/shared/ui/block/FormContent";
+
+import { FormSection } from "@/core/shared/ui/block/FormSection";
+import { FormHeader } from "@/core/shared/ui/block/FormHeader";
+
+
+import type { FC } from "react";
+
+
+
+export const <%~ toClassName(PAGE_TITLE) %>Form: FC = () => {
+  return (
+    <FormSection>
+      <FormHeader className="bg-sidebar">
+        <span><%~ PAGE_TITLE %></span>
+      </FormHeader>
+<% for (dc of SCHEMA.dcs) {  
+ const SchemaName = capitalize(dc.name) + "Schema"; %>
+  <<%= SchemaName %> />
+<% } %>
+    </FormSection>  
+  );
+};

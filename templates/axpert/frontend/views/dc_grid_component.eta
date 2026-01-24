@@ -1,11 +1,23 @@
+<%
+  const SCHEMA_NAME = DC_NAME + "Schema";
+%>
 import React from "react";
-
-
-export const <% DC_NAME %>GridComponent: React.FC = () => {
+import { FormContent } from "@/core/shared/ui/block/FormContent";
+import {GridTable,TableField} from "@/core/formily/components/TableField";
+import { <%~ SCHEMA_NAME %> } from "../schemas";
+const schema_list = each(<%~ SCHEMA_NAME %>, (key, value) => {
+  return { ...value, name: key };
+});
+export const <%= capitalize(DC_NAME) %>GridComponent: React.FC = () => {
   return (
-    <div>
-        <h1><% DC_NAME %> Component</h1>
-        {/* Add your component implementation here */}
-    </div>
+       <FormContent className="overflow-hidden" style={{ padding: 0 }}>
+          <TableField
+            name={<%='"' + DC_NAME.toLowerCase() + '"' %>}
+            columns={schema_list}
+            defautlFirstRow={true}
+            allowAdd={false}
+            inlineAdd={true}
+          />
+        </FormContent>
     );
 };

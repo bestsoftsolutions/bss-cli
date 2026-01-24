@@ -1,0 +1,82 @@
+
+import { Page } from "@/core/shared/ui/page/page";
+import { PageFormView } from "@/core/shared/ui/page/PageFormView";
+import { PageListView } from "@/core/shared/ui/page/pagelistview";
+import type { SearchColumnDef } from "@/core/shared/ui/page/PageProvider";
+import { Toolbar } from "@/core/shared/ui/page/pagetoolbar";
+import { <%= toClassName(PAGE_TITLE) %>Form } from "./<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>_form";
+import apiClient from "./api_client";
+import {AllSchemas} from "./schemas";
+import { isArr } from "@formily/shared";
+
+export const <%= toClassName(PAGE_TITLE) %>Page = () => {
+  return (
+    <Page
+     client ={apiClient}
+      schema={AllSchemas}
+      onCreate={apiClient.create}
+      onView={apiClient.get}
+      onDelete={apiClient.delete}
+      onUpdate={apiClient.update}
+      listview={{
+        getData: apiClient.list,
+        pageSize: 20,}
+    
+    >
+      <div className="flex flex-col overflow-hidden h-full">
+        <Toolbar title="<%= PAGE_TITLE %>">
+          <Toolbar.NewButton />
+          <Toolbar.SaveButton />
+          <Toolbar.SearchButton />
+          <Toolbar.DeleteButton />
+          <Toolbar.ListViewButton />
+          
+        </Toolbar>
+        <div className="overflow-auto w-full flex-1 px-2 py-2 bg-gray-100 space-y-4">
+         {/* <PageListView
+            columns={[
+              { header: "Unit", name: "unitname" },
+              {
+                header: "Issue No",
+                name: "docid",
+                cellLink: {
+                  onClick: (e, value) => {
+                    e.preventDefault();
+                    alert("Clicked on Issue No: " + value);
+                  },
+                },
+              },
+              {
+                header: "Date",
+                name: "docdate",
+                dataType: "date",
+                dateFormat: "DD/MM/YYYY",
+              },
+
+              { header: "Party", name: "partyid" },
+              { header: "Location", name: "locid" },
+              {
+                header: "Total Quantity",
+                name: "totqty",
+                dataType: "number",
+                align: "right",
+              },
+              { header: "OCN No", name: "ionos" },
+              { header: "Style No", name: "stylenos" },
+              { header: "Style Description", name: "sdesc" },
+              { header: "Process", name: "proname" },
+              { header: "Bud.Rate", name: "budgrate" },
+              { header: "Prep.By", name: "prepby" },
+            ]}
+          ></PageListView> */}
+          {/* <PageFormPreview>
+          
+          </PageFormPreview> */}
+          <PageFormView>
+            <<%= toClassName(PAGE_TITLE) %>Form />
+          </PageFormView>
+        </div>
+      </div>
+    </Page>
+  );
+};

@@ -1,5 +1,5 @@
 <% DCS.forEach(dc => { %>
-import {<%= dc.name %>Schema} from "./<%= dc.name %>Schema";
+import {<%= dc.name %>Schema} from "./<%= dc.name %>_schema";
 <% }) %>
 export const AllSchemas = {
 <% DCS.forEach(dc => { %>

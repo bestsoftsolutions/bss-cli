@@ -1,0 +1,37 @@
+import { sendGetRequest, sendPostRequest } from "@/core/shared/api/request";
+ 
+
+ <%
+    const ENDPOINT_NAME = PAGE_TITLE.replace(/\s+/g, '_').toUpperCase() + '_ENDPOINT'; 
+ %>
+  const <%= ENDPOINT_NAME %> = "/v1/<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>";
+
+ class <%= toClassName(PAGE_TITLE) %>ApiClient {
+  
+  async create(data: any) {
+    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/create", data);
+  }
+
+  async get(id: string) {
+    return await sendGetRequest(<%= ENDPOINT_NAME %> + "/get/" + id);
+  }
+
+  async update(id: string, data: any) {
+    // Implement update logic here
+  }
+
+  async delete(id: string) {
+    // Implement delete logic here
+  }
+
+  async list(params: any) {
+    // Implement list logic here
+  }
+
+  async getData (name:string,params: any) {
+    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/get_field_data/" + "name", params); 
+  }
+
+}
+
+export default new <%= toClassName(PAGE_TITLE) %>ApiClient();

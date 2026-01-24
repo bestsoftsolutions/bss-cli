@@ -1,11 +1,19 @@
 import React from "react";
+<%
+  const SchemaName = DC_NAME + "Schema";
+%>
+import { FormContent } from "@/core/shared/ui/block/FormContent";
+import { renderSchemaTemplates } from "@/core/formily/utils/renderTemplate";
+import { <%~ SchemaName %> } from "../schemas";
 
-
-export const <%DC_NAME%>Component: React.FC = () => {
+export const <%= capitalize(DC_NAME) %>Component: React.FC = () => {
   return (
-    <div>
-        <h1><% DC_NAME %> Component</h1>
-        {/* Add your component implementation here */}
-    </div>
+      <FormContent
+        style={{
+          gridTemplateColumns: "repeat(6, 1fr)",
+        }}
+      >
+        {renderSchemaTemplates(<%~ SchemaName %>)}
+      </FormContent>
     );
 };
