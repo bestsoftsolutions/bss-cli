@@ -16,7 +16,6 @@
     "start": "node dist/index.cjs",
     "clean": "rm -rf dist",
     "build": "tsup src/index.ts --format cjs",
-    "prepack": "npm run build",
     "publish:public": "node scripts/publish.cjs"
   },
   "keywords": [
@@ -33,14 +32,15 @@
     "fs-extra": "^11.3.3",
     "pkg": "^5.8.1",
     "ts-node": "^10.9.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "tsup": "^8.5.1"
   },
-  "optionalDependencies": {},
+  "optionalDependencies": {
+    "oracledb": "^6.10.0"
+  },
   "dependencies": {
     "commander": "^14.0.2",
     "eta": "^4.5.0",
-    "inquirer": "^13.1.0",
-    "oracledb": "^6.10.0",
-    "tsup": "^8.5.1"
+    "inquirer": "^13.1.0"
   }
 }
