@@ -1,0 +1,1 @@
+export <%= __page__ %> from './<%= __page__ %>';

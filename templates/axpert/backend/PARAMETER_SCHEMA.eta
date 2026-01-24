@@ -1,0 +1,44 @@
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional, List
+from app.types.localdatetime import LocalDatetime,LocalDate,LocalTime
+from decimal import Decimal
+<%
+const TYPE_MAPPING = {
+    'c': 'str',
+    'd': 'LocalDate',
+    'n': 'Decimal',
+}
+function mapFieldType(column) {
+    let data_type =  column.datatype
+    const type = TYPE_MAPPING[data_type] || 'str';
+    if(column.modeofentry === 'select') {
+    if ( column.asgrid === 'T') {
+        return 'str | int | list[int] | list[int]';
+    } else {
+        return 'str | int';
+    }
+    }
+    else {
+        if(column.asgrid === 'T') {
+            return `${type} | list[${type}]`;
+        } else {
+            return type;
+        }
+    }
+   
+    
+}
+function mapFieldDefinition(field) {
+    const field_type = mapFieldType(field);
+    if (field.nullable === false) {
+        return field_type;
+    } else {
+        return `Optional[${field_type}] = None`;
+    }
+}
+%>
+class <%= CLASS_NAME %>ParameterSchema(BaseModel):
+<% for (field of FIELDS) { %>
+    <%= field.fname.toLowerCase() %>: <%= mapFieldDefinition(field) %>
+
+<% } %>

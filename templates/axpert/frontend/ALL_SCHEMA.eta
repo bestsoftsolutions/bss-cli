@@ -1,0 +1,8 @@
+<% DCS.forEach(dc => { %>
+import {<%= dc.name %>Schema} from "./<%= dc.name %>Schema";
+<% }) %>
+export const AllSchemas = {
+<% DCS.forEach(dc => { %>
+  ...<%= dc.name %>Schema,
+<% }) %>
+};

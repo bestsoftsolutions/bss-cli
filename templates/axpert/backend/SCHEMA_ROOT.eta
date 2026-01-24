@@ -1,0 +1,9 @@
+<%
+    const SCHEMA_CLASS_NAME = toClassName(PAGE_TITLE) + 'Schema';
+%>
+class <%= SCHEMA_CLASS_NAME %>(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+<% for (column of COLUMNS) { %>
+    <%= column.name.toLowerCase() %>: <%= mapFieldDefinition(column) %>
+    
+<% } %>

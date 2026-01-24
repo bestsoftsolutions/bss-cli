@@ -1,0 +1,219 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+from .models import <%= [SCHEMA.tables.master, ...SCHEMA.tables.details].map(d => toClassName(d.tableName || "")).join(", ") %>  # Import detail models
+from typing import List, Optional
+<%
+            const MASTER_CLASS_NAME = toClassName(SCHEMA.tables.master.tableName);
+            const DETAIL_CLASS_NAMES = Object.fromEntries(new Map(SCHEMA.tables.details.map(d => [d.tableName, toClassName(d.tableName)])));
+            const DETAIL_TABLES = SCHEMA.tables.details.map(d => d.tableName);
+            const MASTER_TABLE_NAME = SCHEMA.tables.master.tableName;
+%>
+
+class <%= toClassName(PAGE_TITLE) %>Service:
+    """Unified service for ordmas and related detail tables"""
+    
+    # ============= MASTER TABLE OPERATIONS =============
+    
+    async def get_all(self, db: AsyncSession, skip: int = 0, limit: int = 100) -> List[<%= MASTER_CLASS_NAME %>]:
+        """Get all ordmas records"""
+        return (await db.query(<%= MASTER_CLASS_NAME %>).offset(skip).limit(limit)).all()
+    
+    async def get_by_id(self, db: AsyncSession, id: int) -> Optional[<%= MASTER_CLASS_NAME %>]:
+        """Get a single ordmas record by ID"""
+        return await (db.query(<%= MASTER_CLASS_NAME %>).filter(<%= MASTER_CLASS_NAME %>.id == id)).first()
+    
+    async def create(self, db: AsyncSession, data: dict) -> <%= MASTER_CLASS_NAME %>:
+        """
+        Create a new ordmas record with optional nested detail records.
+        
+        Args:
+            data: dict with structure:
+            {
+                'master_field1': value1,
+                'master_field2': value2,
+                ...
+                'detail_table_1': [
+                    {'detail_field1': value1, ...},
+                    {'detail_field1': value2, ...}
+                ],
+                'detail_table_2': [
+                    {'detail_field1': value1, ...}
+                ],
+                ...
+            }
+        
+        Returns:
+            Master record with all created details (single transaction)
+        """
+        # Extract detail records from data
+        detail_records = {}
+        detail_tables_names = <%~ DETAIL_TABLES.map(name => `'${name}'`).join(", ") %>
+        
+        for detail_name in detail_tables_names:
+            detail_records[detail_name] = data.pop(detail_name, [])
+        
+        try:
+            # Create master record
+            db_item = <%= MASTER_CLASS_NAME %>(**data)
+            db.add(db_item)
+            await db.flush()  # Flush to get the ID without committing
+            
+<% for (const detailTable of DETAIL_TABLES) { %>
+            # Create <%= detailTable %> detail records directly
+            for detail_data in detail_records.get('<%= detailTable %>', []):
+                detail_data['master_id'] = db_item.id
+                detail_item = <%= DETAIL_CLASS_NAMES[detailTable] %>(**detail_data)
+                db.add(detail_item)
+<% } %>
+            
+            # Commit all changes in one transaction
+            await db.commit()
+            await db.refresh(db_item)
+            return db_item
+        
+        except Exception as e:
+            await db.rollback()
+            raise Exception(f"Error creating master with details: {str(e)}")
+    
+    async def update(self, db: AsyncSession, id: int, data: dict) -> Optional[<%= MASTER_CLASS_NAME %>]:
+        """
+        Update a ordmas record with optional nested detail records.
+        
+        Smart update logic:
+        - Insert new detail records (those without 'id')
+        - Update existing detail records (those with 'id')
+        - Delete detail records not in the new list
+        
+        Args:
+            data: dict with structure:
+            {
+                'master_field1': value1,
+                ...
+                'detail_table_1': [
+                    {'id': 1, 'detail_field1': value1, ...},  # UPDATE
+                    {'detail_field1': value2, ...},            # INSERT
+                    ...
+                ],
+                ...
+            }
+        
+        Returns:
+            Updated master record with all updated details (single transaction)
+        """
+        # Extract detail records from data
+        detail_records = {}
+        detail_tables_names = <%~ DETAIL_TABLES.map(name => `'${name}'`).join(", ") %>
+        
+        for detail_name in detail_tables_names:
+            detail_records[detail_name] = data.pop(detail_name, None)
+        
+        try:
+            db_item = db.query(<%= MASTER_CLASS_NAME %>).filter(<%= MASTER_CLASS_NAME %>.id == id).first()
+            if not db_item:
+                return None
+            
+            # Update master fields
+            for key, value in data.items():
+                if value is not None:
+                    setattr(db_item, key, value)
+            
+            
+            # Smart update Ordcomp details
+<% for (const detailTable of DETAIL_TABLES) { %>
+            if detail_records['<%= detailTable %>'] is not None:
+                new_detail_ids = set()
+                for detail_data in detail_records['<%= detailTable %>']:
+                    if 'id' in detail_data and detail_data['id']:
+                        detail_id = detail_data['id']
+                        new_detail_ids.add(detail_id)
+                        detail_item = (await db.query(Ordcomp).filter(Ordcomp.id == detail_id)).first()
+                        if detail_item:
+                            for key, value in detail_data.items():
+                                if value is not None and key != 'id':
+                                    setattr(detail_item, key, value)
+                    else:
+                        # INSERT new record
+                        detail_data_copy = {k: v for k, v in detail_data.items() if k != 'id'}
+                        detail_data_copy['master_id'] = id
+                        detail_item = <%= DETAIL_CLASS_NAMES[detailTable] %>(**detail_data_copy)
+                        db.add(detail_item)
+                
+                # DELETE records not in new list
+                if new_detail_ids:
+                    (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(
+                        <%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == id,
+                        ~<%= DETAIL_CLASS_NAMES[detailTable] %>.id.in_(new_detail_ids)
+                    ).delete(synchronize_session=False)
+                else:
+                    (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == id).delete(synchronize_session=False)
+<% } %>
+            await db.commit()
+            await db.refresh(db_item)
+            return db_item
+        
+        except Exception as e:
+            await db.rollback()
+            raise Exception(f"Error updating master with details: {str(e)}")
+    
+    async def delete(self, db: AsyncSession, id: int) -> bool:
+        """Delete a ordmas record and all related detail records"""
+        try:
+            db_item = (await db.query(<%= MASTER_CLASS_NAME %>).filter(<%= MASTER_CLASS_NAME %>.id == id)).first()
+            if db_item:
+                # Delete all detail records directly (without individual commits)
+<% for (const detailTable of DETAIL_TABLES) { %>
+                (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == id).delete(synchronize_session=False)
+<% } %>
+                # Delete master record
+                await db.delete(db_item)
+                await db.commit()
+                return True
+            return False
+        except Exception as e:
+            await db.rollback()
+            raise Exception(f"Error deleting master with details: {str(e)}")
+    
+    async def count(self, db: AsyncSession) -> int:
+        """Get total count of ordmas records"""
+        return (await db.query(Ordmas)).count()
+<% for (const detailTable of DETAIL_TABLES) { %>
+
+    # ============= DETAIL TABLE OPERATIONS FOR <%= detailTable %> =============
+    async def get_details_<%= detailTable %>(self, db: AsyncSession, master_id: int) -> List[<%= DETAIL_CLASS_NAMES[detailTable] %>]:
+        """Get all ordcomp records for a master"""
+        return (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == master_id).all()
+    
+    async def create_detail_<%= detailTable %>(self, db: AsyncSession, master_id: int, data: dict) -> <%= DETAIL_CLASS_NAMES[detailTable] %>:
+        """Create a new <%= detailTable %> record"""
+        data['master_id'] = master_id
+        db_item = <%= DETAIL_CLASS_NAMES[detailTable] %>(**data)
+        db.add(db_item)
+        await db.commit()
+        await db.refresh(db_item)
+        return db_item
+    
+    async def update_detail_<%= detailTable %>(self, db: AsyncSession, detail_id: int, data: dict) -> Optional[<%= DETAIL_CLASS_NAMES[detailTable] %>]:
+        """Update a <%= detailTable %> record"""
+        db_item = (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.id == detail_id).first()
+        if db_item:
+            for key, value in data.items():
+                if value is not None and key != 'master_id':
+                    setattr(db_item, key, value)
+            await db.commit()
+            db.refresh(db_item)
+        return db_item
+    
+    async def delete_detail_<%= detailTable %>(self, db: AsyncSession, detail_id: int) -> bool:
+        """Delete a <%= detailTable %> record"""
+        db_item = (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.id == detail_id).first()
+        if db_item:
+            await db.delete(db_item)
+            await db.commit()
+            return True
+        return False
+    
+    async def count_details_<%= detailTable %>(self, db: AsyncSession, master_id: int) -> int:
+        """Get count of <%= detailTable %> records for a master"""
+        return (await db.query(<%= DETAIL_CLASS_NAMES[detailTable] %>)).filter(<%= DETAIL_CLASS_NAMES[detailTable] %>.master_id == master_id).count()
+
+<% } %>
+

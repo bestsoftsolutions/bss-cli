@@ -1,0 +1,5 @@
+<% if(dc.asGrid) { %>
+<%~ include("views/dc_grid_component.eta", { dc }) %>
+<% } else { %>
+<%~ include("views/dc_component.eta", { dc }) %>
+<% } %>

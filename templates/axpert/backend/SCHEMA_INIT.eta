@@ -1,0 +1,7 @@
+<% for (detail of DETAILS.map(detail => detail.tableName).reverse()) {%>
+from .<%= detail %>_schema import <%= toClassName(detail) + 'Schema' %>
+
+<% } %>
+
+
+from .<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>_schema import <%= toClassName(PAGE_TITLE) + 'Schema' %>

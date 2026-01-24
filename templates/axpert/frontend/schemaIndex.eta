@@ -1,0 +1,4 @@
+<% DCS.forEach(dc => { %>
+export * from "./<%= dc.name %>Schema";
+<% }) %>
+export * from "./AllSchemas";

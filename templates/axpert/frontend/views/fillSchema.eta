@@ -1,0 +1,4 @@
+ fillField("<%= field.fname.toLowerCase() %>","<fillsource>","<filltarget>")
+    .required(<%= !!field.isrequired %>)
+    .default(<%= field.defaultvalue ? `"${field.defaultvalue}"` : "null" %>).hidden(<%= !!field.ishidden %>).readonly(<%= !!field.isreadonly %>)
+    .extend({ dcname: "<%= field.dcname %>", datatype: "<%= field.datatype %>", flddecimal: <%= field.flddecimal ?? 0 %>, datawidth: <%= field.datawidth ?? 0 %>,savevalue: "<%= field.savevalue %>",}),

@@ -1,0 +1,52 @@
+from pydantic import BaseModel, ConfigDict, Field
+from typing import Optional, List
+from app.types.localdatetime import LocalDatetime,LocalDate,LocalTime
+from decimal import Decimal
+<%
+const TYPE_MAPPING = {
+    'VARCHAR2': 'str',
+    'NVARCHAR2': 'str',
+    'CHAR': 'str',
+    'NCHAR': 'str',
+    'NUMBER': 'Decimal',
+    'FLOAT': 'float',
+    'DATE': 'LocalDate',
+    'TIMESTAMP': 'LocalDatetime',
+    'CLOB': 'str',
+    'BLOB': 'bytes',
+    'RAW': 'bytes',
+    'LONG': 'str',
+}
+function mapFieldType(column) {
+    const data_type = column.type.toUpperCase();
+    if(data_type == "NUMBER") {
+        return 'Decimal';
+    }
+    else if (['VARCHAR2', 'NVARCHAR2', 'CHAR', 'NCHAR'].includes(column.type.toUpperCase())) {
+        return 'str';
+    }
+    return TYPE_MAPPING[column.type.toUpperCase()] || 'str';
+}
+function mapFieldDefinition(column) {
+    const field_type = mapFieldType(column);
+    if (column.nullable === false) {
+        return field_type;
+    } else {
+        return `Optional[${field_type}] = None`;
+    }
+}
+
+%>
+class <%= CLASS_NAME %>(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+<% for (column of COLUMNS) { %>
+    <%= column.name.toLowerCase() %>: <%= mapFieldDefinition(column) %>
+    
+<% } %>
+<% if(is_master) { %>
+class <%= CLASS_NAME %>Create(<%= CLASS_NAME %>):
+    pass
+
+class <%= CLASS_NAME %>Update(<%= CLASS_NAME %>):
+    pass
+<% } %>

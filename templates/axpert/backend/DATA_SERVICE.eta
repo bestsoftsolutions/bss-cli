@@ -1,0 +1,53 @@
+<%~ include("views/func.eta", { SCHEMA }) %>
+
+<%
+const FIELDS = SCHEMA.dcs
+  .flatMap(dc => dc.fields)
+  .filter(f => f.fldsql);
+%>
+
+"""
+<%= toClassName(PAGE_TITLE) %> Data Service - Execute SQL queries for dynamic data loading
+<%= PAGE_TITLE %>
+This service provides individual functions for each field with a factory function dispatcher.
+"""
+
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
+from typing import List, Any, Optional, Union
+
+
+class <%= toClassName(PAGE_TITLE) %>DataService:
+    """Service for fetching data via fldsql expressions"""
+
+    def __init__(self):
+        """Initialize field handlers mapping"""
+        self.field_handlers = {
+<% for (const field of FIELDS.filter(f => f.fldsql?.trim())) { %>
+            "<%= field.fname %>": self.get_<%= field.fname.toLowerCase() %>_data,
+<% } %>
+        }
+
+
+<% for (const field of FIELDS.filter(f => f.fldsql?.trim())) { %>
+    async def get_<%= field.fname.toLowerCase() %>_data( self,db: AsyncSession,params: Optional[dict] = None) -> Union[List[Any], Any]:
+        """Fetch data for field '<%= field.fname %>' using its fldsql expression"""
+        sql = """<%~ field.fldsql?.trim() %>"""
+        if params:
+            result = await db.execute(text(sql), params)
+        else:
+            result = await db.execute(text(sql))
+        rows = result.fetchall()
+<% if (field.modeofentry === 'select') { %>
+        return [row[0] for row in rows]
+<% } else { %>
+        return rows[0][0] if rows else None
+<% } %>
+<% } %>
+    # Dispatcher method to get field data
+    async def get_field_data(self, field_name: str, db: AsyncSession, params: Optional[dict] = None) -> Union[List[Any], Any]:
+        """Dispatcher to get data for a specific field by name"""
+        handler = self.field_handlers.get(field_name)
+        if not handler:
+            raise ValueError(f"No data handler found for field: {field_name}")
+        return await handler(db, params)

@@ -1,0 +1,4 @@
+ selectField("<%= field.fname.toLowerCase() %>").required(<%= !!field.isrequired %>) .default(<%= field.defaultvalue ? `"${field.defaultvalue}"` : "null" %>).hidden(<%= !!field.ishidden %>).readonly(<%= !!field.isreadonly %>)
+    .datasource(() => { /** <%= field.fldsql?.toString() %> **/return []; })
+    /** Additional axpert field configurations **/
+    .extend({ dcname: "<%= field.dcname %>", datatype: "<%= field.datatype %>", flddecimal: <%= field.flddecimal ?? 0 %>, datawidth: <%= field.datawidth ?? 0 %>,savevalue: "<%= field.savevalue %>",}),

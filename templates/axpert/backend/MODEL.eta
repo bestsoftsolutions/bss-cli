@@ -1,0 +1,68 @@
+from sqlalchemy import Column, Integer, String, Numeric, Float, DateTime, Text, LargeBinary, ForeignKey
+from app.db.session import Base
+<%
+const SQLALCHEMY_TYPE_MAPPING = {
+    'VARCHAR2': 'String',
+    'NVARCHAR2': 'String',
+    'CHAR': 'String',
+    'NCHAR': 'String',
+    'NUMBER': 'Numeric',
+    'FLOAT': 'Float',
+    'DATE': 'DateTime',
+    'TIMESTAMP': 'DateTime',
+    'CLOB': 'Text',
+    'BLOB': 'LargeBinary',
+    'RAW': 'LargeBinary',
+    'LONG': 'Text',
+}
+function mapColumnType(column) {
+
+    const data_type = column.type.toUpperCase();
+    if(data_type == "NUMBER") {
+        if(column.precision && column.scale) {
+            return `Numeric(${column.precision}, ${column.scale})`;
+        } else if(column.precision) {
+            return `Numeric(${column.precision})`;
+        } else {
+            return `Integer`;
+        }
+    }
+    else if (['VARCHAR2', 'NVARCHAR2', 'CHAR', 'NCHAR'].includes(column.type.toUpperCase())) {
+        if(column.length) {
+            return `String(${column.length})`;
+        } else {
+            return `String`;
+        }
+    }
+    return SQLALCHEMY_TYPE_MAPPING[column.type.toUpperCase()] || 'String';
+}
+function createForeignKey(column) {
+    if (column.foreign_key) {
+        return `, ForeignKey('${column.foreign_key}')`;
+    }
+    return '';
+}
+function createPrimaryKey(column) {
+    return column.primary_key ? ', primary_key=True' : '';
+}
+function createNullable(column) {
+    return column.nullable === false ? ', nullable=False' : '';
+}
+function mapColumnDefinition(column,primary_keys) {
+        const col_type = mapColumnType(column);
+        const is_pk = primary_keys.includes(column.name);
+        const is_nullable = is_pk ? false : column.nullable;
+        const column_parts = [
+            col_type,
+            is_pk ? 'primary_key=True' : '',
+            is_nullable === false ? 'nullable=False' : '',
+        ];
+
+    return `${column_parts.filter(part => part !== '').join(', ')}`;
+}
+%>
+class <%= CLASS_NAME %>(Base):
+    __tablename__ = "<%= TABLE_NAME %>"
+<% for (column of COLUMNS) { %>
+    <%= column.name.toLowerCase() %> = Column(<%= mapColumnDefinition(column, PRIMARY_KEYS) %>)
+<% } %>

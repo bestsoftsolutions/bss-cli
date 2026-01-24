@@ -1,0 +1,7 @@
+<%
+  const MODEL_SERVICE_NAME = `${toClassName(PAGE_TITLE)}Service`;
+  const DATA_SERVICE_NAME = `${toClassName(PAGE_TITLE)}DataService`;
+%>
+from .<%= PAGE_TITLE.replace(/\s+/g, '_').toLocaleLowerCase() %>_service import <%= MODEL_SERVICE_NAME %>
+
+from .<%= PAGE_TITLE.replace(/\s+/g, '_').toLocaleLowerCase() %>_data_service import <%= DATA_SERVICE_NAME %>
