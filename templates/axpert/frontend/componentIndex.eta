@@ -1,0 +1,3 @@
+<% for ( const dc of DCS ) { %>
+export * from "./<%= dc.name %>_component";
+<% } %>
