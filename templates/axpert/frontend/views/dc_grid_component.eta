@@ -10,7 +10,7 @@ export const <%= capitalize(DC_NAME) %>GridComponent: React.FC = () => {
   return (
        <FormContent className="overflow-hidden" style={{ padding: 0 }}>
           <TableField
-            name={<%='"' + DC_NAME.toLowerCase() + '"' %>}
+            name={"<%= DC_NAME.toLowerCase() %>"}
             columns={Object.values(<%~ SCHEMA_NAME %>) as any}
             defautlFirstRow={true}
             allowAdd={false}

@@ -1,5 +1,5 @@
 import { sendGetRequest, sendPostRequest } from "@/core/shared/api/request";
- 
+import type { IAPIClient } from "@/core/shared/type";
 
  <%
     const ENDPOINT_NAME = PAGE_TITLE.replace(/\s+/g, '_').toUpperCase() + '_ENDPOINT'; 
