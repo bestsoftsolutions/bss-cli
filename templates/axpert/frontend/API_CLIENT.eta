@@ -1,37 +1,23 @@
-import { sendGetRequest, sendPostRequest } from "@/core/shared/api/request";
-import type { IAPIClient } from "@/core/shared/type";
+import { ApiClientBase } from "@/core/api_client_base";
 
  <%
     const ENDPOINT_NAME = PAGE_TITLE.replace(/\s+/g, '_').toUpperCase() + '_ENDPOINT'; 
  %>
   const <%= ENDPOINT_NAME %> = "/v1/<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>";
 
- class <%= toClassName(PAGE_TITLE) %>ApiClient implements IAPIClient {
-  
-  async create(data: any) {
-    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/create", data);
+ class <%= toClassName(PAGE_TITLE) %>ApiClient extends ApiClientBase {
+  constructor() {
+    super(<%= ENDPOINT_NAME %>);
+    // Initialization code if needed
   }
 
-  async get(id: string | number) {
-    return await sendGetRequest(<%= ENDPOINT_NAME %> + "/get/" + id);
-  }
+  // Add methods for API interactions here
+  // can override base class methods or add new ones
+  // Example:
+  // async getItems(params) {
+  //   return this.getRequest("/", params);
+  // }
 
-  async update(id: string | number, data: any) {
-    // Implement update logic here
-    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/update/" + id, data);
-  }
-
-  async delete(id: string | number) {
-    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/delete/" + id, {});
-  }
-
-  async list(params: any) {
-    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/list", params);
-  }
-
-  async getData (name:string,params: any) {
-    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/get_field_data/" + name, params); 
-  }
 
 }
 
