@@ -3,7 +3,7 @@
 %>
 import React from "react";
 import { FormContent } from "@/core/shared/ui/block/FormContent";
-import {GridTable,TableField} from "@/core/formily/components/TableField";
+import {TableField} from "@/core/formily/components/TableField";
 import { <%~ SCHEMA_NAME %> } from "../schemas";
 
 export const <%= capitalize(DC_NAME) %>GridComponent: React.FC = () => {

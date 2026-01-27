@@ -1,13 +1,13 @@
 
 import { Page } from "@/core/shared/ui/page/page";
 import { PageFormView } from "@/core/shared/ui/page/PageFormView";
-import { PageListView } from "@/core/shared/ui/page/pagelistview";
-import type { SearchColumnDef } from "@/core/shared/ui/page/PageProvider";
+
+
 import { Toolbar } from "@/core/shared/ui/page/pagetoolbar";
 import { <%= toClassName(PAGE_TITLE) %>Form } from "./<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>_form";
 import apiClient from "./api_client";
 import {AllSchemas} from "./schemas";
-import { isArr } from "@formily/shared";
+
 
 export const <%= toClassName(PAGE_TITLE) %>Page = () => {
   return (

@@ -1,6 +1,3 @@
-
-import { FormContent } from "@/core/shared/ui/block/FormContent";
-
 import { FormSection } from "@/core/shared/ui/block/FormSection";
 import { FormHeader } from "@/core/shared/ui/block/FormHeader";
 import type { FC } from "react";
