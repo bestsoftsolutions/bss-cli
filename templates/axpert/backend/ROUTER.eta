@@ -30,6 +30,7 @@ except ImportError:
     data_service = None
 
 router = APIRouter(
+    prefix="/<%= __module__ %>",
     tags=["<%= __module__ %>"],
 )
 
