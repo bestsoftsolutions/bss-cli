@@ -1,7 +1,7 @@
 import { FormSection } from "@/core/shared/ui/block/FormSection";
 import { FormHeader } from "@/core/shared/ui/block/FormHeader";
 import type { FC } from "react";
-import { <%~ SCHEMA.dcs.map(dc => ' ' + capitalize(dc.name) + 'Component').join(',') %> } from "../components";
+import { <%~ SCHEMA.dcs.map(dc => ' ' + capitalize(dc.name) + 'Component').join(',') %> } from "./components";
 
 
 export const <%~ toClassName(PAGE_TITLE) %>Form: FC = () => {
