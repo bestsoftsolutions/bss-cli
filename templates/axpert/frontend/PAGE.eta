@@ -12,15 +12,15 @@ import { isArr } from "@formily/shared";
 export const <%= toClassName(PAGE_TITLE) %>Page = () => {
   return (
     <Page
-     client ={apiClient}
-      schema={AllSchemas}
+      // client ={apiClient}
+      schema={AllSchemas as any}
       onCreate={apiClient.create}
       onView={apiClient.get}
       onDelete={apiClient.delete}
       onUpdate={apiClient.update}
       listview={{
         getData: apiClient.list,
-        pageSize: 20,}
+        pageSize: 20,}}
     
     >
       <div className="flex flex-col overflow-hidden h-full">

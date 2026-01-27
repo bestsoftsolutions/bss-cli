@@ -3,10 +3,8 @@ import { FormContent } from "@/core/shared/ui/block/FormContent";
 
 import { FormSection } from "@/core/shared/ui/block/FormSection";
 import { FormHeader } from "@/core/shared/ui/block/FormHeader";
-
-
 import type { FC } from "react";
-
+import { <%~ SCHEMA.dcs.map(dc => ' ' + capitalize(dc.name) + 'Component').join(',') %> } from "../components";
 
 
 export const <%~ toClassName(PAGE_TITLE) %>Form: FC = () => {
@@ -16,7 +14,7 @@ export const <%~ toClassName(PAGE_TITLE) %>Form: FC = () => {
         <span><%~ PAGE_TITLE %></span>
       </FormHeader>
 <% for (dc of SCHEMA.dcs) {  
- const SchemaName = capitalize(dc.name) + "Schema"; %>
+ const SchemaName = capitalize(dc.name) + "Component"; %>
   <<%= SchemaName %> />
 <% } %>
     </FormSection>  

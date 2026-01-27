@@ -6,30 +6,31 @@ import { sendGetRequest, sendPostRequest } from "@/core/shared/api/request";
  %>
   const <%= ENDPOINT_NAME %> = "/v1/<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>";
 
- class <%= toClassName(PAGE_TITLE) %>ApiClient {
+ class <%= toClassName(PAGE_TITLE) %>ApiClient implements IAPIClient {
   
   async create(data: any) {
     return await sendPostRequest(<%= ENDPOINT_NAME %> + "/create", data);
   }
 
-  async get(id: string) {
+  async get(id: string | number) {
     return await sendGetRequest(<%= ENDPOINT_NAME %> + "/get/" + id);
   }
 
-  async update(id: string, data: any) {
+  async update(id: string | number, data: any) {
     // Implement update logic here
+    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/update/" + id, data);
   }
 
-  async delete(id: string) {
-    // Implement delete logic here
+  async delete(id: string | number) {
+    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/delete/" + id, {});
   }
 
   async list(params: any) {
-    // Implement list logic here
+    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/list", params);
   }
 
   async getData (name:string,params: any) {
-    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/get_field_data/" + "name", params); 
+    return await sendPostRequest(<%= ENDPOINT_NAME %> + "/get_field_data/" + name, params); 
   }
 
 }

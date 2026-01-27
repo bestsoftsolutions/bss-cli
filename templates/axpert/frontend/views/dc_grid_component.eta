@@ -5,15 +5,13 @@ import React from "react";
 import { FormContent } from "@/core/shared/ui/block/FormContent";
 import {GridTable,TableField} from "@/core/formily/components/TableField";
 import { <%~ SCHEMA_NAME %> } from "../schemas";
-const schema_list = each(<%~ SCHEMA_NAME %>, (key, value) => {
-  return { ...value, name: key };
-});
+
 export const <%= capitalize(DC_NAME) %>GridComponent: React.FC = () => {
   return (
        <FormContent className="overflow-hidden" style={{ padding: 0 }}>
           <TableField
             name={<%='"' + DC_NAME.toLowerCase() + '"' %>}
-            columns={schema_list}
+            columns={Object.values(<%~ SCHEMA_NAME %>) as any}
             defautlFirstRow={true}
             allowAdd={false}
             inlineAdd={true}
