@@ -1,0 +1,56 @@
+{
+      name: "<%= field.fname %>",
+      caption: "<%= field.caption %>",
+      datatype: "<%= field.datatype %>",
+      modeofentry: "<%= field.modeofentry %>",
+      required: <%= field.caption?.endsWith("*")  %>,
+      hidden: <%= field.hidden === 'T' %>,
+      readonly: <%= field.readonly === 'T' %>,
+      dcname: "<%= field.dcname %>",
+      savevalue: <%= field.savevalue === 'T' %>,
+<% if(field.valexpr){ %>
+  // validation expression
+      validate: (value) => {
+        // <%~ field.valexpr %>
+        // FIXME : <%= field.fname %> validation not implemented
+        return null;
+      },
+<% } %>
+<% if (["calculate","accept","select"].includes(field.modeofentry) && field.expression) { %>
+  // expression
+      expression: expressionAction(async () => {
+  <% if(field.fldsql && field.modeofentry === "accept"){ %>
+    // SQL Expression
+    // FIXME: <%= field.fname %> SQL execution logic not implemented
+          return await apiClient.getData("<%= field.fname %>", {});
+  <% } else { %>
+    // <%= field.expression %>
+    // FIXME: <%= field.fname %> expression not implemented
+          return null;
+  <% } %>
+
+        }, []), // FIXME:<%= field.fname %> dependencies not specified
+<% } %>
+<% if(field.modeofentry === "select"){ %>
+  // options for select field
+  <% if(field.fldsql){ %>
+      suggestion: {
+        textField: "<textField>", // FIXME: <%= field.fname %> text field not specified
+        valueField: "<valueField>", // FIXME: <%= field.fname %> value field not specified
+        when: [], // FIXME: <% field.fname %> dependencies not specified
+        suggest: async () => {
+          return await apiClient.getData("<%= field.fname %>", {}); // FIXME: <%= field.fname %> data fetching parameters not specified
+        },
+      },
+  <% } else { %>
+      dataSource: [
+        // { label: "ORDER", value: "ORDER" }, 
+        // FIXME: <%= field.fname %> list not specified
+      ],
+  <% } %>
+<% } %>
+<% if(field.modeofentry === "fill") { %>
+      fillsource: "<fill source>", // FIXME: <%= field.fname %>  fill source not specified
+      filltarget: "<fill target>", // FIXME: <%= field.fname %> fill target not specified
+<% } %>
+},

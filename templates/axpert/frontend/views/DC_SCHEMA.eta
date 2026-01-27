@@ -1,0 +1,22 @@
+import {<%= FIELDS.some(f => f.modeofentry === 'calculate') ? 'calculateField,' : '' -%>
+ <%= FIELDS.some(f => f.modeofentry === 'fill') ? 'fillField,' : '' -%>
+ <%= FIELDS.some(f => f.modeofentry === 'accept') ? 'acceptField,' : '' -%>
+ <%= FIELDS.some(f => f.modeofentry === 'select') ? 'selectField,' : '' -%>
+} from "@/core/classes/FieldBuilder";
+
+export const <%= DC_NAME %>Schema = {
+<% for (const field of FIELDS) { %>
+/** <%= field.fname %> <%= field.modeofentry%> **/
+  <%= field.fname.toLowerCase() %>:
+<%- if (field.modeofentry === "calculate") { -%>
+<%~ include("views/calculatedSchema.eta", { field }) %>
+<%- } else if (field.modeofentry === "fill") { -%>
+<%~ include("views/fillSchema.eta", { field }) %>
+<%- } else if (field.modeofentry === "select") { -%>
+<%~ include("views/selectSchema.eta", { field }) %>
+<%- } else { -%>
+<%~ include("views/acceptSchema.eta", { field }) %>
+<% } %>
+
+<% } %>
+};
