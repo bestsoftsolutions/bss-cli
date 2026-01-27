@@ -6,7 +6,7 @@ import { FormContent } from "@/core/shared/ui/block/FormContent";
 import {TableField} from "@/core/formily/components/TableField";
 import { <%~ SCHEMA_NAME %> } from "../schemas";
 
-export const <%= capitalize(DC_NAME) %>GridComponent: React.FC = () => {
+export const <%= capitalize(DC_NAME) %>Component: React.FC = () => {
   return (
        <FormContent className="overflow-hidden" style={{ padding: 0 }}>
           <TableField
