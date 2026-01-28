@@ -3,7 +3,7 @@ import { ApiClientBase } from "@/core/api_client_base";
  <%
     const ENDPOINT_NAME = PAGE_TITLE.replace(/\s+/g, '_').toUpperCase() + '_ENDPOINT'; 
  %>
-  const <%= ENDPOINT_NAME %> = "/v1/<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>";
+  const <%= ENDPOINT_NAME %> = "/v1/<%= __module__ %>";
 
  class <%= toClassName(PAGE_TITLE) %>ApiClient extends ApiClientBase {
   constructor() {

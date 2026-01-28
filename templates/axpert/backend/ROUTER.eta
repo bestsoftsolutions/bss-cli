@@ -133,7 +133,7 @@ async def delete_<%= __module__ %>(id: int, db: AsyncSession = Depends(get_db_as
 @router.post("/data/{field_name}", tags=["data"])
 async def get_field_data(
     field_name: str = Path(..., description="Name of the field to fetch data for"),
-    params: Optional[Any] = None,
+    params: dict = Body(default={}, description="Query parameters as key-value pairs"),
     db: AsyncSession = Depends(get_db_async)
 ):
     '''
@@ -170,7 +170,7 @@ async def get_field_data(
                 params_dict = params
         
         # Call factory function
-        result = await data_service.get_field_data(db, field_name, params_dict)
+        result = await data_service.get_field_data(field_name,db, params_dict)
         
         return {
             "success": True,

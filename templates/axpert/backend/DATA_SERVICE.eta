@@ -15,7 +15,7 @@ This service provides individual functions for each field with a factory functio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
 from typing import List, Any, Optional, Union
-
+from app.utils.sql import sql_template_replace
 
 class <%= toClassName(PAGE_TITLE) %>DataService:
     """Service for fetching data via fldsql expressions"""
@@ -28,20 +28,21 @@ class <%= toClassName(PAGE_TITLE) %>DataService:
 <% } %>
         }
 
-
 <% for (const field of FIELDS.filter(f => f.fldsql?.trim())) { %>
     async def get_<%= field.fname.toLowerCase() %>_data( self,db: AsyncSession,params: Optional[dict] = None) -> Union[List[Any], Any]:
         """Fetch data for field '<%= field.fname %>' using its fldsql expression"""
-        sql = """<%~ field.fldsql?.trim() %>"""
+        sql = """<%~ convertSqlToLowercase(field.fldsql?.trim()) %>"""
         if params:
-            result = await db.execute(text(sql), params)
+            templated_sql = sql_template_replace(sql, params or {})
+            result = await db.execute(text(templated_sql), params)
         else:
             result = await db.execute(text(sql))
-        rows = result.fetchall()
+       
 <% if (field.modeofentry === 'select') { %>
-        return [row[0] for row in rows]
+        rows = result.fetchall()
+        return [row._asdict() for row in rows]
 <% } else { %>
-        return rows[0][0] if rows else None
+        return result.scalar()
 <% } %>
 <% } %>
     # Dispatcher method to get field data
