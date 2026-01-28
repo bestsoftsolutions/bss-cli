@@ -26,9 +26,13 @@
   <% } else { %>
     // FIXME: expression for field <%~ field.fname %> not implemented
     // <%~ field.expression %>
-    
+
     return null;
   <% } -%>
-},[<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>]),
+},  
+<% if(deps.size > 0) { %>
+[<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>]
+<% } %>),
+
 <% } %>
 
