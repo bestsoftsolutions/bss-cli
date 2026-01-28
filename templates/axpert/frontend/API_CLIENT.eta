@@ -5,7 +5,7 @@ import { ApiClientBase } from "@/core/api_client_base";
  %>
   const <%= ENDPOINT_NAME %> = "/v1/<%= __module__ %>";
 
- class <%= toClassName(PAGE_TITLE) %>ApiClient extends ApiClientBase {
+  class <%= toClassName(PAGE_TITLE) %>ApiClient extends ApiClientBase {
   constructor() {
     super(<%= ENDPOINT_NAME %>);
     // Initialization code if needed

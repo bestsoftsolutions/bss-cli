@@ -28,14 +28,21 @@
 <% if(field.fldsql?.trim()){ %>
 <%   let deps = new Set()
     const params = extractParams(field.fldsql);
+    params.forEach(p => {
+      const isDep = FIELDS.some(f => f.fname.toLowerCase() === p.toLowerCase());
+      if (isDep) {
+        deps.add(p.toLowerCase());
+      }
+    });
+
  %> 
       suggestion: {
         textField: "<textField>", // FIXME: <% field.fname %> text field not specified
         valueField: "<valueField>", // FIXME: <% field.fname %> value field not specified
-        when: [<%~ Array.from(params).filter(x => FIELDS.some(f => f.fname.toLowerCase() === x)).map(d => `"${d?.toLowerCase()}"`).join(", ") %>],
+        when: [<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>],
         suggest: async (deps) => {
-          const {<%~ Array.from(params).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
-          if(<%~ Array.from(params).map(d => `!${d?.toLowerCase()}`).join(" || ") %>) return [];    
+          const {<%~ Array.from(deps).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
+          if(<%~ Array.from(deps).map(d => `!${d?.toLowerCase()}`).join(" || ") %>) return [];    
           return await apiClient.getData("<%= field.fname %>", {
             <%~ Array.from(params).map(d => `${d.toLowerCase()}: ${d.toLowerCase()}`).join(", ") %>
           }); 
