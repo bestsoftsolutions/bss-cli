@@ -1,6 +1,6 @@
 
-<% if (["calculate", "accept", "select"].includes(field.modeofentry) && (field.fldsql || field.expression)) {
-  let deps = new Set() -%>
+<% if (["calculate", "accept", "select"].includes(field.modeofentry) && (field.fldsql?.trim() || field.expression?.trim())) { 
+  let deps = new Set(); %>
   expression :  expressionAction(async (deps) => {
   <% if (field.fldsql && field.modeofentry === "accept") {
     const params = extractParams(field.fldsql.trim());
@@ -10,20 +10,23 @@
         deps.add(p.toLowerCase());
       }
     }); %>
+    <% if (params.size > 0) { -%>
+    const {<%~ Array.from(params).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
     <% if (deps.size > 0) { -%>
-    const {<%~ Array.from(deps).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
     if(<%~ Array.from(deps).map(d => `!${d?.toLowerCase()}`).join(" || ") %>) return null;
+    <% } %>
     <% } -%>
     <% if (params.size > 0) { -%>
       return await apiClient.getData("<%~ field.fname %>", {
         <%~ Array.from(params).map(d => `${d.toLowerCase()}: ${d?.toLowerCase()}`).join(", \n") %>
-      });
+        });
     <% } else { -%>
       return await apiClient.getData("<%~ field.fname %>");
     <% } -%>
-  <% } else { -%>
+  <% } else { %>
     // FIXME: expression for field <%~ field.fname %> not implemented
     // <%~ field.expression %>
+    
     return null;
   <% } -%>
 },[<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>]),

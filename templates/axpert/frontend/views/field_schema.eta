@@ -41,10 +41,12 @@
         valueField: "<valueField>", // FIXME: <% field.fname %> value field not specified
         when: [<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>],
         suggest: async (deps) => {
-          const {<%~ Array.from(deps).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
-          if(<%~ Array.from(deps).map(d => `!${d?.toLowerCase()}`).join(" || ") %>) return [];    
+<% if(params.length > 0) { -%>
+          const {<%~ Array.from(params).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
+<% if (deps.size > 0) { -%>
+          if(<%~ Array.from(deps).map(d => `!${d?.toLowerCase()}`).join(" || ") %>) return []; <% }} %> 
           return await apiClient.getData("<%= field.fname %>", {
-            <%~ Array.from(params).map(d => `${d.toLowerCase()}: ${d.toLowerCase()}`).join(", ") %>
+            <%~ Array.from(params).map(d => `${d.toLowerCase()}: ${d.toLowerCase()}`).join(",\n") %>
           }); 
         },
       },

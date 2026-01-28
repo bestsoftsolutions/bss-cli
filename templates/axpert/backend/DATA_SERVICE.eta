@@ -33,7 +33,7 @@ class <%= toClassName(PAGE_TITLE) %>DataService:
         """Fetch data for field '<%= field.fname %>' using its fldsql expression"""
         sql = """<%~ convertSqlToLowercase(field.fldsql?.trim()) %>"""
         if params:
-            templated_sql = sql_template_replace(sql, params or {})
+            templated_sql = sql_template_replace(sql, **params)
             result = await db.execute(text(templated_sql), params)
         else:
             result = await db.execute(text(sql))
