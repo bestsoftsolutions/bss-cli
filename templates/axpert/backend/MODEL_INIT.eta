@@ -4,4 +4,4 @@ from .<%= detail %>_model import <%= toClassName(detail)%>
 <% } %>
 
 
-from .<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>_model import <%= toClassName(PAGE_TITLE) %>
+from .<%= toFileName(PAGE_TITLE) %>_model import <%= toClassName(PAGE_TITLE) %>

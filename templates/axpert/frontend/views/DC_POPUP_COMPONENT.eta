@@ -1,0 +1,49 @@
+<%
+     const {name,popupInfo} = dc;
+    const SchemaName = name + "Schema";
+    const importPath = generateImportPath(IMPORT_SCHEMAS_PATH,CURRENT_PATH); 
+%>
+import { type FC } from "react";
+import { SubGridView } from "@/core/formily/components/SubView";
+import { <%= SchemaName %> } from "./schemas/<%= name %>_schema";
+import apiClient from "<%= generateImportPath(IMPORT_API_CLIENT_PATH,CURRENT_PATH) %>";
+export const <%= toClassName(name) %>SubGrid: FC = () => {
+  return (
+ <SubGridView
+        name="<%= popupInfo?.name %>"
+        style={{
+          width: '95vw'
+        }}
+        schema={Object.values(<%= SchemaName %>)}
+        subnoKey="<%= popupInfo?.parentField %>"
+        allowAddNew={<%= popupInfo?.addNew %>}
+        allowDelete={<%= popupInfo?.addNew %>}
+        onRefresh={async ({ scopeContext, }) => {
+          const { gridValues: rowValues = {}, formValues } = scopeContext;
+            // Load data for the subgrid based on the parent row values
+            return apiClient.getData("subgrid_<%= popupInfo?.name.toLowerCase() %>", {
+              params: {
+               
+              },
+            });
+        }}
+        // transform={(row, allRows) => {
+        //   console.log("transform row", {
+        //     ...row,
+        //     avlstock: row.stockqty - row.allocqty
+        //   });
+        //   return ({
+        //     ...row,
+        //     avlstock: row.stockqty - row.allocqty
+        //   })
+        // }}
+        onSubmit={(rows) => {
+          // Handle submission of subgrid rows
+            
+        }}
+        onSubmitError={(err) => {
+          // Handle submission errors
+        }}
+      />
+  );
+};

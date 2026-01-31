@@ -1,13 +1,20 @@
 <%
   const SCHEMA_NAME = DC_NAME + "Schema";
 %>
-import React from "react";
+import React , { Fragment } from "react";
 import { FormContent } from "@/core/shared/ui/block/FormContent";
 import {TableField} from "@/core/formily/components/TableField";
 import { <%~ SCHEMA_NAME %> } from "../schemas";
+<% if(dc.subGrids && dc.subGrids.length > 0) { %>
+import {<%~ dc.subGrids.map(x => toClassName(x.name) + "SubGrid").join(", ") %>} from '<%= generateImportPath(IMPORT_SUBGRIDS_PATH,CURRENT_PATH) %>';
+<% } %>
+<% if(dc.fillGrids && dc.fillGrids.length > 0) { %>
+import {<%~ dc.fillGrids.map(fg => toClassName(fg.caption) + "FillGrid").join(", ") %>} from '<%= generateImportPath(IMPORT_FILL_GRIDS_PATH,CURRENT_PATH) %>';
+<% } %>
 
 export const <%= capitalize(DC_NAME) %>Component: React.FC = () => {
   return (
+  <Fragment>
        <FormContent className="overflow-hidden" style={{ padding: 0 }}>
           <TableField
             name={"<%= DC_NAME.toLowerCase() %>"}
@@ -15,7 +22,29 @@ export const <%= capitalize(DC_NAME) %>Component: React.FC = () => {
             defautlFirstRow={true}
             allowAdd={false}
             inlineAdd={true}
+<% if(dc.fillGrids && dc.fillGrids.length > 0) { %>
+            fills = {
+              [
+<% for (const fg of dc.fillGrids) { %>
+    {
+      name : "<%= fg.name %>",
+      // icon : <%= fg.icon %>,
+      title : "<%= fg.caption %>",
+    }
+<% }%>
+              ]
+            }
+<% } %>
           />
         </FormContent>
+        <%~ dc.subGrids?.map(sg => {
+      const SubGridComponentName = toClassName(sg.name) + "SubGrid";
+      return `<${SubGridComponentName} />`;
+    }).join("\n")  %>
+     <%~ dc.fillGrids?.map(fg => {
+      const FillGridComponentName = toClassName(fg.caption) + "FillGrid";
+      return `<${FillGridComponentName} />`;
+    }).join("\n")  %>
+  </Fragment>
     );
 };

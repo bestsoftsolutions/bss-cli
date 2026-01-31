@@ -1,4 +1,4 @@
-<% DCS.forEach(dc => { %>
+<% DCS.filter(dc => !dc.isPopup).forEach(dc => { %>
 export * from "./<%= dc.name %>_schema";
 <% }) %>
 export * from "./allSchemas";

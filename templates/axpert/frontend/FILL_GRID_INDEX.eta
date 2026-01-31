@@ -1,0 +1,6 @@
+
+<% for ( fill of FILL_GRIDS) { 
+const FillGridComponentName = toClassName(fill.caption) + "FillGrid";
+%>
+export { <%= FillGridComponentName %> } from "./<%= toFileName(fill.caption) %>_fill_grid";
+<% } %>

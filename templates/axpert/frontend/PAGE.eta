@@ -4,7 +4,7 @@ import { PageFormView } from "@/core/shared/ui/page/PageFormView";
 
 
 import { Toolbar } from "@/core/shared/ui/page/pagetoolbar";
-import { <%= toClassName(PAGE_TITLE) %>Form } from "./<%= PAGE_TITLE.replace(/\s+/g, '_').toLowerCase() %>_form";
+import { <%= toClassName(PAGE_TITLE) %>Form } from "./<%= toFileName(PAGE_TITLE) %>_form";
 import apiClient from "./api_client";
 import {AllSchemas} from "./schemas";
 

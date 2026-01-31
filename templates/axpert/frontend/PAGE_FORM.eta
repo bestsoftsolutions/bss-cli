@@ -1,19 +1,24 @@
 import { FormSection } from "@/core/shared/ui/block/FormSection";
 import { FormHeader } from "@/core/shared/ui/block/FormHeader";
 import type { FC } from "react";
-import { <%~ SCHEMA.dcs.map(dc => ' ' + capitalize(dc.name) + 'Component').join(',') %> } from "./components";
-
+import React, { Fragment } from "react";
+import { <%~ SCHEMA.dcs.filter(d => !d.isPopup).map(dc => ' ' + capitalize(dc.name) + 'Component').join(',') %> } from "<%= generateImportPath(IMPORT_COMPONENTS_PATH,CURRENT_PATH) %>";
 
 export const <%~ toClassName(PAGE_TITLE) %>Form: FC = () => {
   return (
+  <Fragment>
     <FormSection>
       <FormHeader className="bg-sidebar">
         <span><%~ PAGE_TITLE %></span>
       </FormHeader>
-<% for (dc of SCHEMA.dcs) {  
+<% for (dc of SCHEMA.dcs.filter(d => !d.isPopup)) {  
  const SchemaName = capitalize(dc.name) + "Component"; %>
   <<%= SchemaName %> />
 <% } %>
-    </FormSection>  
+    </FormSection> 
+  
+
+    
+  </Fragment>
   );
 };

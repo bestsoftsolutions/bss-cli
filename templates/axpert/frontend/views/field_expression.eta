@@ -1,38 +1,35 @@
-
-<% if (["calculate", "accept", "select"].includes(field.modeofentry) && (field.fldsql?.trim() || field.expression?.trim())) { 
-  let deps = new Set(); %>
-  expression :  expressionAction(async (deps) => {
-  <% if (field.fldsql && field.modeofentry === "accept") {
-    const params = extractParams(field.fldsql.trim());
-    params.forEach(p => {
-      const isDep = FIELDS.some(f => f.fname.toLowerCase() === p.toLowerCase());
-      if (isDep) {
-        deps.add(p.toLowerCase());
-      }
-    }); %>
-    <% if (params.size > 0) { -%>
-    const {<%~ Array.from(params).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
-    <% if (deps.size > 0) { -%>
-    if(<%~ Array.from(deps).map(d => `!${d?.toLowerCase()}`).join(" || ") %>) return null;
-    <% } %>
-    <% } -%>
-    <% if (params.size > 0) { -%>
-      return await apiClient.getData("<%~ field.fname %>", {
-        <%~ Array.from(params).map(d => `${d.toLowerCase()}: ${d?.toLowerCase()}`).join(", \n") %>
-        });
-    <% } else { -%>
-      return await apiClient.getData("<%~ field.fname %>");
-    <% } -%>
-  <% } else { %>
-    // FIXME: expression for field <%~ field.fname %> not implemented
-    // <%~ field.expression %>
-
-    return null;
-  <% } -%>
-},  
-<% if(deps.size > 0) { %>
-[<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>]
-<% } %>),
-
+<% if (["calculate", "accept", "select"].includes(field.modeofentry)) { 
+  let deps = new Set(); 
+  const expressionRelations = field.relations?.filter(r => r.relationType === "ex") ?? [];
+  const sqlRelations = field.relations?.filter(r => r.relationType === "sp") ?? [];
+  const isExpressionField = field.expression?.trim() && ["calculate", "accept","select"].includes(field.modeofentry);
+  const isSqlField = field.fldsql?.trim() && field.modeofentry === "accept";
+  expressionRelations.forEach(p => {
+    const isDep = FIELDS.some(f => f.fname.toLowerCase() === p.sourceField.toLowerCase());
+    if (isDep) {
+      deps.add(p.sourceField.toLowerCase());
+    }
+  });
+  sqlRelations.forEach(p => {
+    const isDep = FIELDS.some(f => f.fname.toLowerCase() === p.sourceField.toLowerCase());
+    if (isDep) {
+      deps.add(p.sourceField.toLowerCase());
+    }
+  });
+  const params = isExpressionField ? expressionRelations.map(r => r.sourceField.toLowerCase()) : sqlRelations.map(r => r.sourceField.toLowerCase());
+-%>
+<% if (isExpressionField) { -%>
+       expression: literalExpression(`<%~ field.expression %>`,[<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>]),
 <% } %>
-
+<% if (isSqlField) { -%>
+     expression: expressionAction(async (deps) => {
+<% if(params.length > 0) { -%>
+            const {<%~ Array.from(params).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
+<% if (deps.size > 0) { -%>
+            if(<%~ Array.from(deps).map(d => `!${d?.toLowerCase()}`).join(" || ") %>) return null;
+<% } } -%>
+            const result = await apiClient.getData("<%= field.fname %>", {
+                  <%~ Array.from(params).map(d => `${d.toLowerCase()}: ${d.toLowerCase()}`).join(",\n                 ") %>}); 
+            return result;
+        }, [<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>]),
+<% } }%>

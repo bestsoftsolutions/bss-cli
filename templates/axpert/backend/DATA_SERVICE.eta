@@ -26,6 +26,12 @@ class <%= toClassName(PAGE_TITLE) %>DataService:
 <% for (const field of FIELDS.filter(f => f.fldsql?.trim())) { %>
             "<%= field.fname %>": self.get_<%= field.fname.toLowerCase() %>_data,
 <% } %>
+<% for ( const fillgrid of SCHEMA.fillGrids || [] ) { %>
+            "fill_<%= fillgrid.name.toLowerCase() %>": self.fill_<%= fillgrid.name.toLowerCase() %>_data,   
+<% } %>
+<% for ( const subgrid of (SCHEMA.subGrids || []).filter(sg => sg.autoFill ) ) { %>
+            "subgrid_<%= subgrid.name.toLowerCase() %>": self.subgrid_<%= subgrid.name.toLowerCase() %>_data,
+<% } %>
         }
 
 <% for (const field of FIELDS.filter(f => f.fldsql?.trim())) { %>
@@ -52,3 +58,31 @@ class <%= toClassName(PAGE_TITLE) %>DataService:
         if not handler:
             raise ValueError(f"No data handler found for field: {field_name}")
         return await handler(db, params)
+    
+    # fill grid data method
+<% for ( const fillgrid of SCHEMA.fillGrids || [] ) { %>
+    async def fill_<%= fillgrid.name.toLowerCase() %>_data(self, db: AsyncSession, params: Optional[dict] = None) -> List[Any]:
+        """Fetch data for fill grid '<%= fillgrid.fgname %>' using its SQL expression"""
+        sql = """<%~ convertSqlToLowercase(fillgrid.sql?.trim()) %>"""
+        if params:
+            templated_sql = sql_template_replace(sql, **params)
+            result = await db.execute(text(templated_sql), params)
+        else:
+            result = await db.execute(text(sql))
+        rows = result.fetchall()
+        return [row._asdict() for row in rows]
+<% } %>
+
+    # subgrid data method
+<% for ( const subgrid of (SCHEMA.subGrids || []).filter(sg => sg.autoFill ) ) { %>
+    async def subgrid_<%= subgrid.name.toLowerCase() %>_data(self, db: AsyncSession, params: Optional[dict] = None) -> List[Any]:
+        """Fetch data for subgrid '<%= subgrid.sgname %>' using its SQL expression"""
+        sql = """<%~ convertSqlToLowercase(subgrid.fillScript.trim()) %>"""
+        if params:
+            templated_sql = sql_template_replace(sql, **params)
+            result = await db.execute(text(templated_sql), params)
+        else:
+            result = await db.execute(text(sql))
+        rows = result.fetchall()
+        return [row._asdict() for row in rows]
+<% } %>

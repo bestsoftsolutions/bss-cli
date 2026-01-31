@@ -1,0 +1,48 @@
+<%
+    const FillGridComponentName = toClassName(FILL_GRID.caption) + "FillGrid";
+    const flname = FILL_GRID.name;
+    const fillFields = FILL_GRID.fields || [];
+    const fillColumns = fillFields.map(field => {
+        return {
+            header: `"${field.caption.replace("*", "")}"`,
+            id: `"${field.sourceField.toLowerCase()}"`,
+            cell: `({ getValue }) => <span>{getValue<string>()}</span>`,
+            accessorKey: `"${field.sourceField.toLowerCase()}"`,
+        };
+    });
+%>
+import React from "react";
+import apiClient from "../api_client";
+import { FillGridForm } from "@/core/formily/components/FillGridForm";
+import type { ColumnDef } from "@tanstack/react-table";
+const FILL_COLUMNS:ColumnDef<any>[] = [
+<% for (const column of fillColumns) { %>
+    {
+        header: <%~ column.header %>,
+        id: <%~ column.id %>,
+        cell: <%~ column.cell %>,
+        accessorKey: <%~ column.accessorKey %>,
+    },
+<% } %>
+];
+
+export const <%= FillGridComponentName %>: React.FC = () => {
+    
+    return (
+    <FillGridForm
+        name="<%= flname %>"
+        title="<%= FILL_GRID.caption %>"
+        columns={FILL_COLUMNS}
+        validateRow={({ row, actionType }) => {
+          // Implement row-level validation logic here
+          return true; // Default to valid
+        }}
+        loadData={async () => {
+            // Load data for the fill grid if needed
+            return apiClient.getData("fill_<%= flname.toLowerCase() %>",{});
+        }}
+        onSubmit={function (context: { selectedRows: any[]; actionType: string | null; requestedPrompt: boolean; args?: any; }): void {
+            throw new Error("Function not implemented.");
+        }} />
+    )
+};

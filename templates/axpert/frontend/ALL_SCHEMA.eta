@@ -1,8 +1,8 @@
-<% DCS.forEach(dc => { %>
+<% DCS.filter(dc => !dc.isPopup).forEach(dc => { %>
 import {<%= dc.name %>Schema} from "./<%= dc.name %>_schema";
 <% }) %>
 export const AllSchemas = {
-<% DCS.forEach(dc => { %>
+<% DCS.filter(dc => !dc.isPopup).forEach(dc => { %>
   ...<%= dc.name %>Schema,
 <% }) %>
 };

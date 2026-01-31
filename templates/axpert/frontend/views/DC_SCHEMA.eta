@@ -1,4 +1,5 @@
 import {<%= FIELDS.some(f => f.modeofentry === 'calculate') ? 'calculateField,' : '' -%>
+import {  literalExpression } from "@/core/cel";
  <%= FIELDS.some(f => f.modeofentry === 'fill') ? 'fillField,' : '' -%>
  <%= FIELDS.some(f => f.modeofentry === 'accept') ? 'acceptField,' : '' -%>
  <%= FIELDS.some(f => f.modeofentry === 'select') ? 'selectField,' : '' -%>

@@ -1,5 +1,9 @@
+<% if(dc.isPopup) { %>
+<%~ include("views/dc_popup_component.eta", { dc }) %>
+<% } else { %>
 <% if(dc.asgrid ==  'T') { %>
 <%~ include("views/dc_grid_component.eta", { dc }) %>
 <% } else { %>
 <%~ include("views/dc_component.eta", { dc }) %>
+<% } %>
 <% } %>

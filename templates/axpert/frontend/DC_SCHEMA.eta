@@ -1,9 +1,9 @@
 import { expressionAction } from "@/core/shared/internal";
-import apiClient from '../api_client'
-
+import apiClient from "<%= generateImportPath(IMPORT_API_CLIENT_PATH,CURRENT_PATH) %>";
+import {  literalExpression } from "@/core/cel";
 export const <%= DC_NAME %>Schema = {
 <% for (const field of FIELDS) { %>
 /** <%= field.fname %> <%= field.modeofentry%> **/
-  <%= field.fname.toLowerCase() -%>:<%~ include("views/field_schema.eta", { field }) %>
+  <%= field.fname.toLowerCase() -%>:<%~ include("views/field_schema.eta", { field, dc }) %>
 <% } %>
 };

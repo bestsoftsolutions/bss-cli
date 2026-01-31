@@ -1,9 +1,9 @@
 <%
-
+  const isSubNoField = dc?.subGrids?.some(sg => sg.parentField?.toLowerCase() === field.fname.toLowerCase());
+  const isSubGrid = dc?.subGrids?.some(sg => sg.field?.toLowerCase() === field.fname.toLowerCase());
+  const subgridInfo = dc?.subGrids?.find(sg => sg.field?.toLowerCase() === field.fname.toLowerCase());
 %>
-
-
-{
+  {     
       name: "<%= field.fname %>",
       caption: "<%= field.caption %>",
       datatype: "<%= field.datatype %>",
@@ -14,51 +14,65 @@
       dcname: "<%= field.dcname %>",
       savevalue: <%= field.savevalue === 'T' %>,
 <% if(field.valexpr){ %>
-  // validation expression
-      validate: (value) => {
-        // <%~ field.valexpr %>
+      validate: (value) => {  // validation expression
         // FIXME : <% field.fname %> validation not implemented
         return null;
       },
 <% } %>
-<%~ include("field_expression.eta",{field}) %>
-
-<% if(field.modeofentry === "select"){ %>
-  // options for select field
-<% if(field.fldsql?.trim()){ %>
-<%   let deps = new Set()
-    const params = extractParams(field.fldsql);
-    params.forEach(p => {
+<%~ include("field_expression.eta",{field}) -%>
+<% if(field.modeofentry === "select"){ 
+if(field.fldsql?.trim()){  
+  let deps = new Set() 
+    const sqlRelations = field.relations?.filter(r => r.relationType === "sp") ?? [];
+    const rlParams = sqlRelations.map(r => r.sourceField.toLowerCase());
+    const queryParams = extractParams(field.fldsql);
+    queryParams.forEach(p => {
       const isDep = FIELDS.some(f => f.fname.toLowerCase() === p.toLowerCase());
       if (isDep) {
         deps.add(p.toLowerCase());
       }
     });
+    rlParams.forEach(p => {
+      const isDep = FIELDS.some(f => f.fname.toLowerCase() === p.toLowerCase());
+      if (isDep) {
+        deps.add(p.toLowerCase());
+      }
+    });
+    const params = Array.from(new Set([...queryParams, ...rlParams]));
 
- %> 
-      suggestion: {
-        textField: "<textField>", // FIXME: <% field.fname %> text field not specified
-        valueField: "<valueField>", // FIXME: <% field.fname %> value field not specified
-        when: [<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>],
-        suggest: async (deps) => {
+ -%>      suggestion: {
+            textField: "<%= field.sourceField?.toLowerCase() %>", // FIXME: <% field.fname %> text field not specified
+            valueField: "<%= `${field.sourceTable?.toLowerCase()}id` %>", // FIXME: <% field.fname %> value field not specified
+            when: [<%~ Array.from(deps).map(d => `"${d?.toLowerCase()}"`).join(", ") %>],
+            suggest: async (deps) => {
 <% if(params.length > 0) { -%>
-          const {<%~ Array.from(params).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
+                const {<%~ Array.from(params).map(d => d?.toLowerCase()).join(", ") %>} = deps || {};
 <% if (deps.size > 0) { -%>
-          if(<%~ Array.from(deps).map(d => `!${d?.toLowerCase()}`).join(" || ") %>) return []; <% }} %> 
-          return await apiClient.getData("<%= field.fname %>", {
-            <%~ Array.from(params).map(d => `${d.toLowerCase()}: ${d.toLowerCase()}`).join(",\n") %>
-          }); 
+                if(<%~ Array.from(deps).map(d => `!${d?.toLowerCase()}`).join(" || ") %>) return [];
+<% } } -%>
+                return await apiClient.getData("<%= field.fname %>", {
+                      <%~ Array.from(params).map(d => `${d.toLowerCase()}: ${d.toLowerCase()}`).join(",\n                     ") %>}); 
         },
       },
   <% } else { %>
-      dataSource: [
-        // { label: "ORDER", value: "ORDER" }, 
-        // FIXME: <% field.fname %> list not specified
-      ],
+            dataSource: [
+                // { label: "ORDER", value: "ORDER" }, 
+                // FIXME: <% field.fname %> list not specified
+                ],
   <% } %>
 <% } %>
-<% if(field.modeofentry === "fill") { %>
-      fillsource: "<fill source>", // FIXME: <% field.fname %>  fill source not specified
-      filltarget: "<fill target>", // FIXME: <% field.fname %> fill target not specified
+<% if(field.modeofentry === "fill") { 
+  const fillsource = field.relations?.find(r => r.relationType === "fl")?.sourceField || "";
+-%>
+      fillsource: "<%= fillsource %>", // FIXME: <% field.fname %>  fill source not specified
+      filltarget: "<%= field.sourceField?.toLowerCase() %>", // FIXME: <% field.fname %> fill target not specified
+<% } 
+if(isSubGrid) { %>
+      enableSubGrid: true,
+      subgrid: "<%= subgridInfo?.name %>",
+      subnoKey: "<%= subgridInfo?.parentField%>",
+      subNoFieldName: "<%= subgridInfo?.parentField %>",
+<% } else if(isSubNoField) { %>
+      isSubKey: true,
 <% } %>
 },

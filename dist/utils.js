@@ -1,0 +1,1 @@
+const r=e=>e.replace(/[^a-zA-Z0-9\s]/g,"").replace(/\s+/g,"_").toLowerCase();export{r as toFileName};

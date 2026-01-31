@@ -1,7 +1,7 @@
 import { ApiClientBase } from "@/core/api_client_base";
 
  <%
-    const ENDPOINT_NAME = PAGE_TITLE.replace(/\s+/g, '_').toUpperCase() + '_ENDPOINT'; 
+    const ENDPOINT_NAME = toFileName(PAGE_TITLE).toUpperCase() + '_ENDPOINT'; 
  %>
   const <%= ENDPOINT_NAME %> = "/v1/<%= __module__ %>";
 

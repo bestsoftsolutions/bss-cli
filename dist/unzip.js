@@ -1,0 +1,1 @@
+import*as o from'fs';import*as t from'zlib';const n=o.readFileSync("unknown"),s=n.subarray(4),e=t.inflateSync(s);o.writeFileSync("output.xml",e),console.log("Decompressed to output.xml");

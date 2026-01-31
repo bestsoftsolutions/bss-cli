@@ -1,0 +1,5 @@
+<% for (dc of SCHEMA.dcs.filter(d => d.isPopup)) {  
+ const SchemaName = capitalize(dc.name) + "SubGrid"; 
+ const export_path = "./" + toFileName(dc.name) + "_component"; %>
+export { <%= SchemaName %> } from "<%= export_path %>";
+<% } %>
