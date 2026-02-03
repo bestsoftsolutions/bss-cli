@@ -1,0 +1,24 @@
+import type { PageModule } from "@/modules/ModuleManifest";
+import { lazy } from "react";
+
+const <%= toClassName(PAGE_TITLE) %> = lazy(() => import("./<%= toFileName(PAGE_TITLE) %>_page").then(module => ({ default: module.<%= toClassName(PAGE_TITLE) %>Page })));
+
+const page: PageModule = {
+    id: "<%= tstuct %>",
+    label: "<%= PAGE_TITLE %>",
+    module: "< __groupname__>",
+    menu: {
+        parentId: "< __groupname__ >",   
+        id: "<%= tstuct %>",
+        label: "<%= PAGE_TITLE %>",
+        path: "<%= tstuct %>",
+    },
+    routes: [
+        {
+            path: "<%= tstuct %>",
+            element: <<%= toClassName(PAGE_TITLE) %> />,
+        },
+    ],
+};
+
+export default page;
