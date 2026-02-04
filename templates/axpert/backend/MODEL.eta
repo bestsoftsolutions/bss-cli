@@ -43,6 +43,7 @@ function createForeignKey(column) {
     return '';
 }
 function createPrimaryKey(column) {
+    
     return column.primary_key ? ', primary_key=True' : '';
 }
 function createNullable(column) {
@@ -50,7 +51,7 @@ function createNullable(column) {
 }
 function mapColumnDefinition(column,primary_keys) {
         const col_type = mapColumnType(column);
-        const is_pk = primary_keys.includes(column.name);
+        const is_pk = primary_keys.includes(column.name) || column.isPrimaryKey;
         const is_nullable = is_pk ? false : column.nullable;
         const column_parts = [
             col_type,
