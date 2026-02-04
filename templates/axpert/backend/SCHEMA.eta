@@ -35,7 +35,6 @@ function mapFieldDefinition(column) {
         return `Optional[${field_type}] = None`;
     }
 }
-
 %>
 class <%= CLASS_NAME %>(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -45,6 +44,7 @@ class <%= CLASS_NAME %>(BaseModel):
 <% } %>
 <% if(is_master) { %>
 class <%= CLASS_NAME %>Create(<%= CLASS_NAME %>):
+    <%= MASTER_TABLE%>id: Optional[int] = None
     pass
 
 class <%= CLASS_NAME %>Update(<%= CLASS_NAME %>):

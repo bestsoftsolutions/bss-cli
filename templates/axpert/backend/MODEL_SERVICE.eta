@@ -4,9 +4,12 @@
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..models import <%= PAGE_CLASS_NAME %>  
+from ..schemas import <%= PAGE_CLASS_NAME %>Schema
 <% if(SCHEMA.tables.details.length > 0) { %>
 from ..models import <%= SCHEMA.tables.details.map(d => toClassName(d.tableName || "")).join(", ") %>  # Import detail models
+from ..schemas import <%= SCHEMA.tables.details.map(d => toClassName(d.tableName || "") + "Schema").join(", ") %>  # Import detail schemas
 <% } %>
+
 from sqlalchemy.future import select
 from sqlalchemy import func
 from typing import List, Optional
@@ -65,7 +68,8 @@ class <%= toClassName(PAGE_TITLE) %>Service:
 <% } %>
         try:
             # Create master record
-            db_item = <%= PAGE_CLASS_NAME %>(**data)
+            mas_schema = <%= PAGE_CLASS_NAME %>Schema(**data)
+            db_item = <%= PAGE_CLASS_NAME %>(**mas_schema.model_dump())
             db.add(db_item)
             await db.flush()  # Flush to get the ID without committing
             
@@ -73,7 +77,8 @@ class <%= toClassName(PAGE_TITLE) %>Service:
             # Create <%= detailTable %> detail records directly
             for detail_data in detail_records.get('<%= detailTable %>', []):
                 detail_data['master_id'] = db_item.id
-                detail_item = <%= DETAIL_CLASS_NAMES[detailTable] %>(**detail_data)
+                detail_schema = <%= DETAIL_CLASS_NAMES[detailTable] %>Schema(**detail_data)
+                detail_item = <%= DETAIL_CLASS_NAMES[detailTable] %>(**detail_schema.model_dump())
                 db.add(detail_item)
 <% } %>
             

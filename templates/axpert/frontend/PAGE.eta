@@ -14,14 +14,13 @@ export const <%= toClassName(PAGE_TITLE) %>Page = () => {
     <Page
       // client ={apiClient}
       schema={AllSchemas as any}
-      onCreate={apiClient.create}
-      onView={apiClient.get}
-      onDelete={apiClient.delete}
-      onUpdate={apiClient.update}
+      onCreate={(data) => apiClient.create(data)}
+      onView={(id) => apiClient.get(id)}
+      onDelete={(id) => apiClient.delete(id)}
+      onUpdate={(id, data) => apiClient.update(id, data)}
       listview={{
-        getData: apiClient.list,
+        getData:  (params) => apiClient.list(params),
         pageSize: 20,}}
-    
     >
       <div className="flex flex-col overflow-hidden h-full">
         <Toolbar title="<%= PAGE_TITLE %>">
