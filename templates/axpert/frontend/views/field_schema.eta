@@ -4,7 +4,7 @@
   const subgridInfo = dc?.subGrids?.find(sg => sg.field?.toLowerCase() === field.fname.toLowerCase());
 %>
   {     
-      name: "<%= field.fname %>",
+      name: "<%= field.fname.toLowerCase() %>",
       caption: "<%= field.caption %>",
       datatype: "<%= field.datatype %>",
       modeofentry: "<%= field.modeofentry %>",
