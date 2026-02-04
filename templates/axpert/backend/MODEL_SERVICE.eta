@@ -1,13 +1,14 @@
 <%
     const PAGE_CLASS_NAME = toClassName(PAGE_TITLE);
+    const master_id = `${MASTER_TABLE.toLowerCase()}id`;
 %>
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..models import <%= PAGE_CLASS_NAME %>  
-from ..schemas import <%= PAGE_CLASS_NAME %>Schema
+from ..schemas import <%= PAGE_CLASS_NAME %>Schema, <%= PAGE_CLASS_NAME %>SchemaCreate, <%= PAGE_CLASS_NAME %>SchemaUpdate  # Import master schemas
 <% if(SCHEMA.tables.details.length > 0) { %>
 from ..models import <%= SCHEMA.tables.details.map(d => toClassName(d.tableName || "")).join(", ") %>  # Import detail models
-from ..schemas import <%= SCHEMA.tables.details.map(d => toClassName(d.tableName || "") + "Schema").join(", ") %>  # Import detail schemas
+from ..schemas import <%= SCHEMA.tables.details.map(d => `${toClassName(d.tableName || "")}Schema,${toClassName(d.tableName || "")}SchemaCreate,${toClassName(d.tableName || "")}SchemaUpdate`).join(", ") %>  # Import detail schemas
 <% } %>
 
 from sqlalchemy.future import select
@@ -68,18 +69,18 @@ class <%= toClassName(PAGE_TITLE) %>Service:
 <% } %>
         try:
             # Create master record
-            mas_schema = <%= PAGE_CLASS_NAME %>Schema(**data)
+            mas_schema = <%= PAGE_CLASS_NAME %>SchemaCreate(**data)
             db_item = <%= PAGE_CLASS_NAME %>(**mas_schema.model_dump())
             db.add(db_item)
             await db.flush()  # Flush to get the ID without committing
             
 <% for (const detailTable of DETAIL_TABLES) { %>
             # Create <%= detailTable %> detail records directly
-            for detail_data in detail_records.get('<%= detailTable %>', []):
-                detail_data['master_id'] = db_item.id
-                detail_schema = <%= DETAIL_CLASS_NAMES[detailTable] %>Schema(**detail_data)
-                detail_item = <%= DETAIL_CLASS_NAMES[detailTable] %>(**detail_schema.model_dump())
-                db.add(detail_item)
+            dets_items = [
+                <%= DETAIL_CLASS_NAMES[detailTable] %>(**<%= DETAIL_CLASS_NAMES[detailTable] %>SchemaCreate(**detail_data).model_dump(), <%= master_id %>=db_item.id)
+                for detail_data in detail_records.get('<%= detailTable %>', [])
+            ]
+            db.add_all(dets_items)
 <% } %>
             
             # Commit all changes in one transaction

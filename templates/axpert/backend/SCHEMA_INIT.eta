@@ -1,10 +1,10 @@
 <% for (detail of DETAILS.map(detail => detail.tableName).reverse()) {%>
-from .<%= detail %>_schema import <%= toClassName(detail) + 'Schema' %>
+from .<%= detail %>_schema import <%= toClassName(detail) + 'Schema' %>, <%= toClassName(detail) + 'SchemaCreate' %>, <%= toClassName(detail) + 'SchemaUpdate' %>
 
 <% } %>
 
 
-from .<%= toFileName(PAGE_TITLE) %>_schema import <%= toClassName(PAGE_TITLE) + 'Schema' %>
+from .<%= toFileName(PAGE_TITLE) %>_schema import <%= toClassName(PAGE_TITLE) + 'Schema' %>, <%= toClassName(PAGE_TITLE) + 'SchemaCreate' %>, <%= toClassName(PAGE_TITLE) + 'SchemaUpdate' %>
 
 from .parameter import <%= toClassName(PAGE_TITLE) + 'ParameterSchema' %>
 

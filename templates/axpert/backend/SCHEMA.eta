@@ -42,11 +42,11 @@ class <%= CLASS_NAME %>(BaseModel):
     <%= column.name.toLowerCase() %>: <%= mapFieldDefinition(column) %>
     
 <% } %>
-<% if(is_master) { %>
+
 class <%= CLASS_NAME %>Create(<%= CLASS_NAME %>):
     <%= MASTER_TABLE%>id: Optional[int] = None
+    
     pass
 
 class <%= CLASS_NAME %>Update(<%= CLASS_NAME %>):
     pass
-<% } %>
